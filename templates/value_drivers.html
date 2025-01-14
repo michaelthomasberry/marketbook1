@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+{% block title %}Value Drivers{% endblock %}
+{% block content %}
+<div class="container">
+    <a href="{{ url_for('manage_market_book', project_id=project.id) }}" class="btn btn-secondary mb-3"><i class="fas fa-arrow-left"></i> Back to Manage Market Book</a>
+
+    <h1>Value Drivers for {{ project.name }}</h1>
+    <h2>Identify What Your Customers Value Most</h2>
+    <p>Every great product starts with understanding what matters to your customers. Think about the factors that influence their buying decisions—what drives them to choose one product over another?</p>
+
+    <div class="card mb-3">
+        <div class="card-header">
+            <h2>Value Drivers
+                <a href="#" id="value-driver-info" data-bs-toggle="popover" data-bs-placement="top" data-bs-content="What’s a Value Driver?
+Customers don’t buy products for their features—they buy them for the benefits those features bring to their lives. A value driver is what makes your product valuable to your customer. It’s the why behind their purchase decision.
+
+For example:
+
+A product isn’t just “easy to use”—it saves time and reduces frustration.
+It’s not just “durable”—it lasts longer and offers better value for money.
+It’s not just “affordable”—it fits within their budget without compromising quality.
+
+When identifying value drivers, think about what your product helps customers achieve, feel, or overcome. By understanding these deeper motivations, you can design products and strategies that truly resonate with your audience." data-bs-trigger="focus" title="More Information">
+                    <i class="fas fa-info-circle text-primary"></i>
+                </a>
+            </h2>
+        </div>
+        <div class="card-body">
+            {% if value_drivers %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Value Driver</th>
+                            <th>Measured By</th>
+                            <th>Weighting</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for vd in value_drivers %}
+                        <tr>
+                            <td>
+                                <form method="POST" style="display: inline;">
+                                    <input type="hidden" name="edit_value_driver_id" value="{{ vd.id }}">
+                                    <input type="text" name="edit_value_driver" value="{{ vd.value_driver }}" class="form-control form-control-sm" style="display:inline; width:auto">
+                                    <button type="submit" name="edit_value_driver" class="btn btn-sm btn-warning" title="Edit"><i class="fas fa-save"></i></button>
+                                </form>
+                            </td>
+                            <td>
+                                <form method="POST" style="display: inline;">
+                                    <input type="hidden" name="edit_measured_by_id" value="{{ vd.id }}">
+                                    <input type="text" name="edit_measured_by" value="{{ vd.measured_by }}" class="form-control form-control-sm" style="display:inline; width:auto">
+                                    <button type="submit" name="edit_measured_by" class="btn btn-sm btn-warning" title="Edit"><i class="fas fa-save"></i></button>
+                                </form>
+                            </td>
+                            <td>{{ vd.weighting|round(1) }}</td>
+                            <td>
+                                <form method="POST" style="display: inline;">
+                                    <input type="hidden" name="delete_value_driver_id" value="{{ vd.id }}">
+                                    <button type="submit" name="delete_value_driver" class="btn btn-sm btn-danger" title="Delete" onclick="return confirm('Are you sure?')"><i class="fas fa-trash-alt"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p>No value drivers yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    {% set all_weighted = value_drivers|length >= 2 and value_drivers|map(attribute='weighting')|sum > 0 %}
+
+    {% if value_drivers|length >= 2 and not all_weighted %}
+    <div class="d-flex justify-content-between mb-3">
+        <a href="{{ url_for('compare_value_drivers', project_id=project.id) }}" class="btn btn-primary"><i class="fas fa-balance-scale"></i> Weight My Value Drivers</a>
+        <form method="POST" style="display: inline;">
+            <button type="submit" name="reset_weightings" class="btn btn-secondary">Reset Weightings</button>
+        </form>
+    </div>
+    {% elif value_drivers|length >= 2 and all_weighted %}
+    <div class="d-flex justify-content-end mb-3">
+        <form method="POST" style="display: inline;">
+            <button type="submit" name="reset_weightings" class="btn btn-secondary">Reset Weightings</button>
+        </form>
+    </div>
+    {% endif %}
+
+    <div class="card mb-3">
+        <div class="card-header">
+            <h2>Add Value Driver</h2>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                <input type="text" name="value_driver" placeholder="Value Driver" required class="form-control mb-2">
+                <input type="text" name="measured_by" placeholder="Measured By" class="form-control mb-2">
+                <button type="submit" name="add_value_driver" class="btn btn-primary"><i class="fas fa-plus"></i> Add Value Driver</button>
+            </form>
+        </div>
+    </div>
+
+    {% if value_drivers|length > 0 and value_drivers|map(attribute='weighting')|sum > 0 %}
+    <div class="card">
+        <div class="card-header">
+            <h2>Value Driver Weighting Chart for {{ project.name }}</h2>
+            <p>Results from conducting pairwise comparison</p>
+        </div>
+        <div class="card-body">
+            <div id="chart-container" style="height: 400px; position: relative;">
+                <canvas id="value-driver-chart"></canvas>
+                <button id="copy-chart" class="btn btn-sm btn-outline-primary position-absolute top-0 end-0 m-2" title="Copy Chart"><i class="fas fa-copy"></i></button>
+            </div>
+            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const ctx = document.getElementById('value-driver-chart').getContext('2d');
+                    const labels = [{% for vd in value_drivers %}"{{ vd.value_driver }}",{% endfor %}];
+                    const data = [{% for vd in value_drivers %}{{ vd.weighting|round(1) }},{% endfor %}];
+
+                    new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Weighting (%)',
+                                data: data,
+                                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                                borderColor: 'rgba(54, 162, 235, 1)',
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    max: 100
+                                }
+                            },
+                            responsive: true,
+                            maintainAspectRatio: false
+                        }
+                    });
+
+                    const copyButton = document.getElementById('copy-chart');
+                    copyButton.addEventListener('click', () => {
+                        ctx.canvas.toBlob(blob => {
+                            navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+                                .then(() => alert('Chart copied to clipboard!'))
+                                .catch(err => {
+                                    console.error('Failed to copy: ', err);
+                                    alert('Failed to copy chart. Please try again or use a different browser.');
+                                });
+                        });
+                    });
+                });
+            </script>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+        var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+            return new bootstrap.Popover(popoverTriggerEl)
+        })
+    });
+</script>
+{% endblock %}
