@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block title %}Comparison Results{% endblock %}
+{% block content %}
+<h1>Comparison Results for {{ project.name }}</h1>
+
+<img src="data:image/png;base64,{{ plot_url }}" alt="Comparison Results Graph">
+
+<a href="{{ url_for('value_drivers', project_id=project.id) }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Value Drivers</a>
+{% endblock %}
