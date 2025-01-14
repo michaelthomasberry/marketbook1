@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Manage Market Book{% endblock %}
+{% block content %}
+<h1>Map the Market for {{ project.name }} in three simple steps...</h1>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card h-100 shadow border-primary"> {# Added border-primary #}
+            <div class="card-body d-flex flex-column">
+                <div class="text-center mb-3">
+                    <span class="step-number">1</span> {# Step number directly in span #}
+                    <i class="fas fa-list-ol fa-3x text-primary"></i>
+                </div>
+                <h5 class="card-title text-center">Create Value Drivers</h5>
+                <p class="card-text">Define the key purchasing criteria for your customers – what they actually care about – and weight them using a pairwise comparison methodology.</p>
+                <a href="{{ url_for('value_drivers', project_id=project.id) }}" class="btn btn-primary mt-auto">Go to Value Drivers</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 shadow border-primary"> {# Added border-primary #}
+            <div class="card-body d-flex flex-column">
+                <div class="text-center mb-3">
+                    <span class="step-number">2</span> {# Step number directly in span #}
+                    <i class="fas fa-chart-bar fa-3x text-primary"></i>
+                </div>
+                <h5 class="card-title text-center">Product/Service Comparison</h5>
+                <p class="card-text">Add and compare products and services against the defined value drivers to see how they stack up.</p>
+                <a href="{{ url_for('product_comparison', project_id=project.id) }}" class="btn btn-primary mt-auto">Go to Comparison</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100 shadow border-primary"> {# Added border-primary #}
+            <div class="card-body d-flex flex-column">
+                <div class="text-center mb-3">
+                    <span class="step-number">3</span> {# Step number directly in span #}
+                    <i class="fas fa-map-marked-alt fa-3x text-primary"></i>
+                </div>
+                <h5 class="card-title text-center">Market Map</h5>
+                <p class="card-text">Visualize product positioning on a market map based on price and weighted score.</p>
+                <a href="{{ url_for('market_map', project_id=project.id) }}" class="btn btn-primary mt-auto">Go to Market Map</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<br>
+<a href="{{ url_for('dashboard') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+
+<style>
+/* Style the step number */
+.step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px; /* Adjust size as needed */
+    height: 40px;
+    font-size: 1.2em;
+    font-weight: bold;
+    border-radius: 50%; /* Make it a circle */
+    background-color: #4169E1; /* Use your primary color */
+    color: white;
+    margin-right: 10px; /* Space between number and icon */
+}
+</style>
+{% endblock %}
