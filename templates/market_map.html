@@ -1,0 +1,219 @@
+{% extends 'base.html' %}
+{% block title %}Market Map{% endblock %}
+{% block content %}
+<h1>Market Map for {{ project.name }}</h1>
+
+<a href="{{ url_for('manage_market_book', project_id=project.id) }}" class="btn btn-secondary mb-3">
+    <i class="fas fa-arrow-left"></i> Back to Manage Market Book
+</a>
+
+<div class="container">
+    <div class="row">
+        {% if scatter_data %}
+            <div class="col-md-12">
+                <h2>Market Map</h2>
+                <div style="height: 500px;">
+                    <canvas id="marketChart"></canvas>
+                </div>
+                <div id="chart-legend" style="margin-top: 20px; display: flex; flex-wrap: wrap; justify-content: center;"></div>
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <script>
+                    const ctx = document.getElementById('marketChart').getContext('2d');
+                    const scatterData = {{ scatter_data|tojson }};
+
+                    if (scatterData) {
+                        const labels = scatterData.map(item => item.name);
+                        const prices = scatterData.map(item => item.price);
+                        const scores = scatterData.map(item => item.score);
+
+                        const highestPrice = Math.max(...prices);
+                        const yMax = highestPrice * 1.2;
+
+                        function generateColors(numColors) {
+                            const colors = [];
+                            for (let i = 0; i < numColors; i++) {
+                                const hue = i * (360 / numColors);
+                                colors.push(`hsl(${hue}, 70%, 60%)`);
+                            }
+                            return colors;
+                        }
+
+                        const productColors = generateColors(scatterData.length);
+
+                        new Chart(ctx, {
+                            type: 'scatter',
+                            data: {
+                                labels: labels,
+                                datasets: [{
+                                    label: 'Products',
+                                    data: prices.map((price, index) => ({ x: scores[index], y: price })),
+                                    backgroundColor: productColors,
+                                    pointRadius: 6
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: false,
+                                scales: {
+                                    x: {
+                                        title: {
+                                            display: true,
+                                            text: 'Weighted Score'
+                                        },
+                                        min: 0,
+                                        max: 3
+                                    },
+                                    y: {
+                                        title: {
+                                            display: true,
+                                            text: 'Price'
+                                        },
+                                        min: 0,
+                                        max: yMax
+                                    }
+                                },
+                                plugins: {
+                                    tooltip: {
+                                        callbacks: {
+                                            label: function (context) {
+                                                let label = context.dataset.label || '';
+                                                if (label) {
+                                                    label += ': ';
+                                                }
+                                                if (context.parsed.y !== null) {
+                                                    label += 'Price: ' + context.parsed.y + ', Score: ' + context.parsed.x;
+                                                }
+                                                label += '\nProduct Name: ' + scatterData[context.dataIndex].name;
+                                                return label;
+                                            },
+                                            labelColor: function(context) {
+                                                return {
+                                                    borderColor: 'black',
+                                                    backgroundColor: productColors[context.dataIndex],
+                                                };
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        });
+
+                        const legendContainer = document.getElementById('chart-legend');
+                        labels.forEach((label, index) => {
+                            const legendItem = document.createElement('div');
+                            legendItem.style.display = 'flex';
+                            legendItem.style.alignItems = 'center';
+                            legendItem.style.marginRight = '20px';
+                            legendItem.style.marginBottom = '10px';
+
+                            const colorBox = document.createElement('div');
+                            colorBox.style.width = '16px';
+                            colorBox.style.height = '16px';
+                            colorBox.style.backgroundColor = productColors[index];
+                            colorBox.style.border = '1px solid black';
+                            colorBox.style.marginRight = '5px';
+
+                            const text = document.createElement('span');
+                            text.textContent = label;
+
+                            legendItem.appendChild(colorBox);
+                            legendItem.appendChild(text);
+                            legendContainer.appendChild(legendItem);
+                        });
+                    } else {
+                        console.error("Scatter data is null or undefined.");
+                    }
+                </script>
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="row">
+        {% if bar_chart_data %}
+            <div class="col-md-12">
+                <h2>Value Drivers</h2>
+                <div class="row justify-content-center">
+                    {% for vd_name in value_driver_names %}
+                        <div class="col-md-5 mb-4 border p-3" style="box-sizing: border-box;">
+                            <h3>{{ vd_name }}</h3>
+                            <canvas id="barChart{{ loop.index }}"></canvas>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <script>
+                    const productNames = {{ product_names|tojson }};
+                    const barChartData = {{ bar_chart_data|tojson }};
+                    const valueDriverNames = {{ value_driver_names|tojson }};
+
+                    if (productNames && barChartData && valueDriverNames) {
+                        const productColors = generateColors(productNames.length);
+
+                        function generateColors(numColors) {
+                            const colors = [];
+                            for (let i = 0; i < numColors; i++) {
+                                const hue = i * (360 / numColors);
+                                colors.push(`hsl(${hue}, 70%, 60%)`);
+                            }
+                            return colors;
+                        }
+
+                        const barChartConfigs = [];
+
+                        for (let i = 0; i < valueDriverNames.length; i++) {
+                            const vdName = valueDriverNames[i];
+                            const scores = barChartData[vdName];
+
+                            if (scores && scores.length > 0) {
+                                barChartConfigs.push({
+                                    type: 'bar',
+                                    data: {
+                                        labels: productNames,
+                                        datasets: [{
+                                            data: scores,
+                                            backgroundColor: productColors,
+                                            borderColor: 'rgba(0, 0, 0, 1)',
+                                            borderWidth: 1
+                                        }]
+                                    },
+                                    options: {
+                                        plugins: {
+                                            legend: {
+                                                display: false
+                                            }
+                                        },
+                                        scales: {
+                                            y: {
+                                                beginAtZero: true,
+                                                max: 3,
+                                                ticks: {
+                                                    stepSize: 1
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+                            } else {
+                                console.error(`Scores for ${vdName} is null, undefined, or empty. Skipping chart.`);
+                            }
+                        }
+
+                        for (let i = 0; i < barChartConfigs.length; i++) {
+                            const ctxBar = document.getElementById(`barChart${i + 1}`).getContext('2d');
+                            if (ctxBar) {
+                                new Chart(ctxBar, barChartConfigs[i]);
+                            } else {
+                                console.error(`Canvas element barChart${i + 1} not found.`);
+                            }
+                        }
+                    } else {
+                        console.error("One or more bar chart data variables are null.");
+                    }
+                </script>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
