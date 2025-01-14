@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Rate Product{% endblock %}
+{% block content %}
+<h1>Rate {{ product.product_name }}</h1>
+
+<a href="{{ url_for('product_comparison', project_id=project.id) }}" class="btn btn-secondary mb-3"><i class="fas fa-arrow-left"></i> Back to Product Comparison</a>
+
+{% if product.image_filename %}
+<img src="{{ url_for('static', filename='uploads/' + product.image_filename) }}" alt="{{ product.product_name }} Image" width="200" class="mb-3">
+{% endif %}
+
+<form method="POST">
+    {% for vd in value_drivers %}
+    <div class="card mb-3">
+        <div class="card-header">{{ vd.value_driver }} (Weighting: {{ vd.weighting }}%)</div>
+        <div class="card-body">
+            <p>{{ vd.measured_by }}</p>
+            <div class="form-group">
+                <label for="rating_{{ vd.id }}">Rating (0-3):</label>
+                <select class="form-control" id="rating_{{ vd.id }}" name="rating_{{ vd.id }}">
+                    <option value="0">Does not meet requirements</option>
+                    <option value="1">Partially meets requirements</option>
+                    <option value="2">Meets requirements</option>
+                    <option value="3">Exceeds requirements</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary">Submit Ratings</button>
+</form>
+
+{% endblock %}
