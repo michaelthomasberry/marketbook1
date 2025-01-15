@@ -83,7 +83,8 @@ class Product(db.Model):
     brand_name = db.Column(db.String(100), nullable=False)
     product_name = db.Column(db.String(100), nullable=False)
     price = db.Column(db.Float)
-    image_filename = db.Column(db.String(255))  # Store filename
+    currency = db.Column(db.String(3), default='gbp')  # Add currency field with default
+    image_filename = db.Column(db.String(255))
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
 
 def allowed_file(filename):
@@ -463,10 +464,11 @@ def product_comparison(project_id):
         return redirect(url_for('dashboard'))
 
     if request.method == 'POST':
-        if 'add_product' in request.form: #Check if the correct submit button was pressed
+        if 'add_product' in request.form:
             brand_name = request.form.get('brand_name')
             product_name = request.form.get('product_name')
             price = request.form.get('price')
+            currency = request.form.get('currency') #Get the currency from the form
             image = request.files.get('image')
 
             if not brand_name or not product_name:
@@ -484,13 +486,13 @@ def product_comparison(project_id):
                 flash('Invalid price format.', 'danger')
                 return redirect(url_for('product_comparison', project_id=project_id))
 
-            new_product = Product(brand_name=brand_name, product_name=product_name, price=price, image_filename=filename, project_id=project_id)
+            new_product = Product(brand_name=brand_name, product_name=product_name, price=price, image_filename=filename, project_id=project_id, currency = currency) #Add currency to product
             db.session.add(new_product)
             db.session.commit()
             flash('Product added successfully!', 'success')
             return redirect(url_for('product_comparison', project_id=project_id))
-        else: #Add this else statement
-            return redirect(url_for('product_comparison', project_id=project_id)) #redirect if it is a post request but not add product
+        else:
+            return redirect(url_for('product_comparison', project_id=project_id))
 
     products = Product.query.filter_by(project_id=project_id).all()
     product_weighted_scores = {}
@@ -521,6 +523,7 @@ def edit_product(project_id, product_id_to_edit):
     if request.method == 'POST':
         product_to_edit.brand_name = request.form.get('brand_name')
         product_to_edit.product_name = request.form.get('product_name')
+        product_to_edit.currency = request.form.get('currency') #Get the currency from the form
         try:
             product_to_edit.price = float(request.form.get('price')) if request.form.get('price') else None
         except ValueError:

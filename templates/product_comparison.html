@@ -10,8 +10,35 @@
         <form method="POST" enctype="multipart/form-data">
             <input type="text" name="brand_name" placeholder="Brand Name" required class="form-control mb-2">
             <input type="text" name="product_name" placeholder="Product Name" required class="form-control mb-2">
-            <input type="number" name="price" placeholder="Price" step="0.01" class="form-control mb-2">
-            <input type="file" name="image" class="form-control mb-2">
+
+            <div class="form-group mb-2">
+                <label for="currency">Currency:</label>
+                <select class="form-control" id="currency" name="currency">
+                    <option value="gbp">£ (GBP)</option>
+                    <option value="usd">$ (USD)</option>
+                    <option value="eur">€ (EUR)</option>
+                    <option value="jpy">¥ (JPY)</option>
+                    <option value="aud">$ (AUD)</option>
+                    <option value="cad">$ (CAD)</option>
+                    {# Add more currencies as needed #}
+                </select>
+            </div>
+            <div class="input-group mb-2">
+                <div class="input-group-prepend">
+                    <span class="input-group-text" id="currency-symbol">£</span>
+                </div>
+                <input type="number" name="price" placeholder="Price" step="0.01" class="form-control">
+            </div>
+
+            <div class="form-group">
+                <label for="image">Product Image:</label>
+                <div class="custom-file">
+                    <input type="file" class="custom-file-input" id="image" name="image" accept="image/*">
+                    <label class="custom-file-label" for="image">Choose file</label>
+                </div>
+                <small class="form-text text-muted">Supported formats: png, jpg, jpeg, gif</small>
+            </div>
+
             <button type="submit" name="add_product" class="btn btn-primary">Add Product</button>
         </form>
     </div>
@@ -43,7 +70,14 @@
                 </td>
                 <td>{{ product.brand_name }}</td>
                 <td>{{ product.product_name }}</td>
-                <td>{{ product.price }}</td>
+                <td>{{ product.price }}
+                    {% if product.currency == "gbp" %}£{% endif %}
+                    {% if product.currency == "usd" %}${% endif %}
+                    {% if product.currency == "eur" %}€{% endif %}
+                    {% if product.currency == "jpy" %}¥{% endif %}
+                    {% if product.currency == "aud" %}${% endif %}
+                    {% if product.currency == "cad" %}${% endif %}
+                </td>
                 <td>
                     <a href="{{ url_for('edit_product', project_id=project.id, product_id_to_edit=product.id) }}" class="btn btn-sm btn-warning" title="Edit"><i class="fas fa-edit"></i></a>
                     <form method="POST" style="display: inline;" action="{{ url_for('delete_product', project_id=project.id, product_id_to_delete=product.id) }}">
@@ -53,7 +87,7 @@
                 <td>
                     <a href="{{ url_for('rate_product', project_id=project.id, product_id_to_rate=product.id) }}" class="btn btn-sm btn-info" title="Rate Product"><i class="fas fa-star"></i></a>
                 </td>
-                <td>{{ product_weighted_scores.get(product.id) or 0 }}</td> {#Display the weighted score#}
+                <td>{{ product_weighted_scores.get(product.id) or 0 }}</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -62,5 +96,30 @@
 {% else %}
 <p>No products added yet.</p>
 {% endif %}
-
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script>
+    document.getElementById('currency').addEventListener('change', function() {
+        let selectedCurrency = this.value;
+        let currencySymbol = "£"; // Default
+        if (selectedCurrency === "usd") {
+            currencySymbol = "$";
+        } else if (selectedCurrency === "eur") {
+            currencySymbol = "€";
+        }
+        else if (selectedCurrency === "jpy") {
+            currencySymbol = "¥";
+        }
+        else if (selectedCurrency === "aud") {
+            currencySymbol = "$";
+        }
+        else if (selectedCurrency === "cad") {
+            currencySymbol = "$";
+        }
+        document.getElementById('currency-symbol').textContent = currencySymbol;
+    });
+    $('.custom-file-input').on('change', function(event) {
+        let fileName = event.target.files[0].name;
+        $(this).next('.custom-file-label').html(fileName);
+    })
+</script>
 {% endblock %}
