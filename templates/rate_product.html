@@ -12,17 +12,23 @@
 <form method="POST">
     {% for vd in value_drivers %}
     <div class="card mb-3">
-        <div class="card-header">{{ vd.value_driver }} (Weighting: {{ vd.weighting }}%)</div>
+        <div class="card-header">{{ vd.value_driver }} (Weighting: {{ "{:.1f}".format(vd.weighting) }}%)</div>
         <div class="card-body">
             <p>{{ vd.measured_by }}</p>
             <div class="form-group">
-                <label for="rating_{{ vd.id }}">Rating (0-3):</label>
-                <select class="form-control" id="rating_{{ vd.id }}" name="rating_{{ vd.id }}">
-                    <option value="0">Does not meet requirements</option>
-                    <option value="1">Partially meets requirements</option>
-                    <option value="2">Meets requirements</option>
-                    <option value="3">Exceeds requirements</option>
-                </select>
+                <label for="rating_{{ vd.id }}">Rating (0-5):</label>
+                <input
+                    type="range"
+                    class="custom-range"
+                    id="rating_{{ vd.id }}"
+                    name="rating_{{ vd.id }}"
+                    min="0"
+                    max="5"
+                    step="1"
+                    value="{{ ratings.get(vd.id, 0) }}" {# Set initial value from ratings #}
+                    oninput="updateRatingDisplay(this)"
+                />
+                <output class="rating-value" for="rating_{{ vd.id }}">{{ ratings.get(vd.id, 0) }}</output> {# Set initial output value #}
             </div>
         </div>
     </div>
@@ -30,4 +36,52 @@
     <button type="submit" class="btn btn-primary">Submit Ratings</button>
 </form>
 
+<script>
+function updateRatingDisplay(slider) {
+  const ratingValue = slider.value;
+  const output = document.querySelector(`output[for="${slider.id}"]`);
+  output.textContent = ratingValue;
+}
+</script>
+
+<style>
+.custom-range {
+  width: 100%;
+  height: 10px;
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: #ddd;
+  outline: none;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.custom-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background-color: #4caf50;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.custom-range::-moz-range-thumb {
+  -moz-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background-color: #4caf50;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.rating-value {
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 5px;
+  display: block;
+  text-align: center;
+}
+</style>
 {% endblock %}

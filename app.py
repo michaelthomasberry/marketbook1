@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import Column, Boolean
 from sqlalchemy.orm import joinedload
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -63,11 +64,12 @@ class User(db.Model, UserMixin):
         return check_password_hash(self.password_hash, password)
 
 #Project
-class Project(db.Model):  # Project model
+class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False) # Foreign key
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    has_market_map = db.Column(db.Boolean, default=False)  # EXACTLY like this
 
 # Value Driver
 class ValueDriver(db.Model):
@@ -300,6 +302,24 @@ def manage_market_book(project_id):
     if project.user_id != current_user.id:
         flash('You are not authorized to manage this project.', 'danger')
         return redirect(url_for('dashboard'))
+
+    if not project.has_market_map:
+        project.has_market_map = True
+        db.session.commit()
+
+    #Check if value drivers exist for the project, if they do then redirect to the correct page
+    value_drivers = ValueDriver.query.filter_by(project_id = project_id).all()
+    if value_drivers:
+        products = Product.query.filter_by(project_id = project_id).all()
+        if products:
+            return redirect(url_for('market_map', project_id=project_id))
+        else:
+            return redirect(url_for('product_comparison', project_id=project_id))
+    else:
+        return redirect(url_for('value_drivers', project_id=project_id))
+
+    # This return is now unreachable due to the redirects above.
+    # It's kept here as a fallback, but should not be hit in normal operation.
     return render_template('manage_market_book.html', project=project)
 
 
@@ -553,6 +573,7 @@ def edit_product(project_id, product_id_to_edit):
 
     return render_template('edit_product.html', project=project, product=product_to_edit)
 
+
 # delete product
 @app.route('/manage/<int:project_id>/product/<int:product_id_to_delete>/delete', methods=['POST'])
 @login_required
@@ -566,6 +587,11 @@ def delete_product(project_id, product_id_to_delete):
     if product_to_delete.project_id != project_id:
         flash('Product not found in this project.', 'danger')
         return redirect(url_for('product_comparison', project_id=project_id))
+
+    # ***THIS IS THE CRUCIAL CHANGE***
+    # Delete associated ratings FIRST
+    Rating.query.filter_by(product_id=product_id_to_delete).delete()
+    db.session.commit() #Commit ratings deletion before product deletion
 
     if product_to_delete.image_filename:
         image_path = os.path.join(app.config['UPLOAD_FOLDER'], product_to_delete.image_filename)
@@ -595,6 +621,10 @@ def rate_product(project_id, product_id_to_rate):
 
     value_drivers = ValueDriver.query.filter_by(project_id=project_id).all()
 
+    # Get existing ratings for this product
+    existing_ratings = Rating.query.filter_by(product_id=product_id_to_rate).all()
+    ratings_dict = {rating.value_driver_id: rating.score for rating in existing_ratings}
+
     if request.method == 'POST':
         all_ratings_valid = True
 
@@ -604,8 +634,8 @@ def rate_product(project_id, product_id_to_rate):
 
             try:
                 rating = int(rating_value)
-                if not (0 <= rating <= 3):
-                    flash(f'Rating for {vd.value_driver} must be between 0 and 3.', 'danger')
+                if not (0 <= rating <= 5):
+                    flash(f'Rating for {vd.value_driver} must be between 0 and 5.', 'danger')
                     all_ratings_valid = False
                     break
             except (ValueError, TypeError):
@@ -617,17 +647,14 @@ def rate_product(project_id, product_id_to_rate):
             for vd in value_drivers:
                 rating_value = int(request.form.get(f'rating_{vd.id}'))
 
-                # Check if a rating already exists for this product and value driver
                 existing_rating = Rating.query.filter_by(
                     product_id=product_id_to_rate, value_driver_id=vd.id
                 ).first()
 
                 if existing_rating:
-                    # Update the existing rating
                     existing_rating.score = rating_value
                     existing_rating.date_rated = datetime.utcnow()
                 else:
-                    # Create a new rating
                     new_rating = Rating(
                         product_id=product_id_to_rate,
                         value_driver_id=vd.id,
@@ -639,7 +666,7 @@ def rate_product(project_id, product_id_to_rate):
             flash('Ratings submitted successfully!', 'success')
             return redirect(url_for('product_comparison', project_id=project_id))
 
-    return render_template('rate_product.html', project=project, product=product_to_rate, value_drivers=value_drivers)
+    return render_template('rate_product.html', project=project, product=product_to_rate, value_drivers=value_drivers, ratings=ratings_dict)
 
 ######################### View graphs  ##################################
 @app.route('/manage/<int:project_id>/market_map')

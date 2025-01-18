@@ -2,45 +2,65 @@
 {% block title %}Product Comparison{% endblock %}
 {% block content %}
 <h1>Product/Service Comparison for {{ project.name }}</h1>
-<a href="{{ url_for('manage_market_book', project_id=project.id) }}" class="btn btn-secondary mb-3"><i class="fas fa-arrow-left"></i> Back to Manage Market Book</a>
+
+<a href="{{ url_for('value_drivers', project_id=project.id) }}" class="btn btn-secondary mb-3"><i class="fas fa-arrow-left"></i> Return to Value Drivers</a>
 
 <div class="card mb-3">
-    <div class="card-header">Add Product</div>
-    <div class="card-body">
-        <form method="POST" enctype="multipart/form-data">
-            <input type="text" name="brand_name" placeholder="Brand Name" required class="form-control mb-2">
-            <input type="text" name="product_name" placeholder="Product Name" required class="form-control mb-2">
+    <div class="card-header">
+        <a class="btn btn-link" data-toggle="collapse" href="#instructions" role="button" aria-expanded="true" aria-controls="instructions">
+            <i class="fas fa-info-circle mr-2"></i> Instructions <i class="fas fa-chevron-down ml-auto"></i>
+        </a>
+    </div>
+    <div class="collapse show" id="instructions">
+        <div class="card-body">
+            <p class="lead">Follow these steps to compare your products/services:</p>
+            <ol>
+                <li>Add the products you want to compare using the form below.</li>
+                <li>Rate each product against the Value Drivers. Click the "Rate" button in the 'Rate Product' column to begin rating.</li>
+                <li>Once you've rated all products, the "View Market Map" button will be enabled.</li>
+            </ol>
+        </div>
+    </div>
+</div>
 
-            <div class="form-group mb-2">
-                <label for="currency">Currency:</label>
-                <select class="form-control" id="currency" name="currency">
-                    <option value="gbp">£ (GBP)</option>
-                    <option value="usd">$ (USD)</option>
-                    <option value="eur">€ (EUR)</option>
-                    <option value="jpy">¥ (JPY)</option>
-                    <option value="aud">$ (AUD)</option>
-                    <option value="cad">$ (CAD)</option>
-                    {# Add more currencies as needed #}
-                </select>
-            </div>
-            <div class="input-group mb-2">
-                <div class="input-group-prepend">
-                    <span class="input-group-text" id="currency-symbol">£</span>
+<div class="card mb-3">
+    <div class="card-header">
+        <a class="btn btn-link" data-toggle="collapse" href="#addProductForm" role="button" aria-expanded="false" aria-controls="addProductForm">
+            <i class="fas fa-plus-circle mr-2"></i> Add Product <i class="fas fa-chevron-down ml-auto"></i>
+        </a>
+    </div>
+    <div class="collapse" id="addProductForm">  <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                <input type="text" name="brand_name" placeholder="Brand Name" required class="form-control mb-2">
+                <input type="text" name="product_name" placeholder="Product Name" required class="form-control mb-2">
+                <div class="form-group mb-2">
+                    <label for="currency">Currency:</label>
+                    <select class="form-control" id="currency" name="currency">
+                        <option value="gbp">£ (GBP)</option>
+                        <option value="usd">$ (USD)</option>
+                        <option value="eur">€ (EUR)</option>
+                        <option value="jpy">¥ (JPY)</option>
+                        <option value="aud">$ (AUD)</option>
+                        <option value="cad">$ (CAD)</option>
+                    </select>
                 </div>
-                <input type="number" name="price" placeholder="Price" step="0.01" class="form-control">
-            </div>
-
-            <div class="form-group">
-                <label for="image">Product Image:</label>
-                <div class="custom-file">
-                    <input type="file" class="custom-file-input" id="image" name="image" accept="image/*">
-                    <label class="custom-file-label" for="image">Choose file</label>
+                <div class="input-group mb-2">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="currency-symbol">£</span>
+                    </div>
+                    <input type="number" name="price" placeholder="Price" step="0.01" class="form-control">
                 </div>
-                <small class="form-text text-muted">Supported formats: png, jpg, jpeg, gif</small>
-            </div>
-
-            <button type="submit" name="add_product" class="btn btn-primary">Add Product</button>
-        </form>
+                <div class="form-group">
+                    <label for="image">Product Image:</label>
+                    <div class="custom-file">
+                        <input type="file" class="custom-file-input" id="image" name="image" accept="image/*">
+                        <label class="custom-file-label" for="image">Choose file</label>
+                    </div>
+                    <small class="form-text text-muted">Supported formats: png, jpg, jpeg, gif</small>
+                </div>
+                <button type="submit" name="add_product" class="btn btn-primary">Add Product</button>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -54,8 +74,8 @@
                 <th>Product Name</th>
                 <th>Price</th>
                 <th>Actions</th>
-                <th>Rate Product</th>
-                <th>Weighted Score</th>
+                <th class="text-center" style="background-color: #e0f2f7; border-left: 2px solid #ddd;">Rate Product</th>
+                <th class="text-center" style="background-color: #d0e9ff; border-left: 2px solid #ddd;">Weighted Score</th>
             </tr>
         </thead>
         <tbody>
@@ -70,7 +90,8 @@
                 </td>
                 <td>{{ product.brand_name }}</td>
                 <td>{{ product.product_name }}</td>
-                <td>{{ product.price }}
+                <td>
+                    {{ product.price }}
                     {% if product.currency == "gbp" %}£{% endif %}
                     {% if product.currency == "usd" %}${% endif %}
                     {% if product.currency == "eur" %}€{% endif %}
@@ -79,15 +100,15 @@
                     {% if product.currency == "cad" %}${% endif %}
                 </td>
                 <td>
-                    <a href="{{ url_for('edit_product', project_id=project.id, product_id_to_edit=product.id) }}" class="btn btn-sm btn-warning" title="Edit"><i class="fas fa-edit"></i></a>
+                    <a href="{{ url_for('edit_product', project_id=project.id, product_id_to_edit=product.id) }}" class="btn btn-sm btn-outline-warning" title="Edit"><i class="fas fa-edit"></i></a>
                     <form method="POST" style="display: inline;" action="{{ url_for('delete_product', project_id=project.id, product_id_to_delete=product.id) }}">
-                        <button type="submit" class="btn btn-sm btn-danger" title="Delete" onclick="return confirm('Are you sure?')"><i class="fas fa-trash-alt"></i></button>
+                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete" onclick="return confirm('Are you sure?')"><i class="fas fa-trash-alt"></i></button>
                     </form>
                 </td>
-                <td>
-                    <a href="{{ url_for('rate_product', project_id=project.id, product_id_to_rate=product.id) }}" class="btn btn-sm btn-info" title="Rate Product"><i class="fas fa-star"></i></a>
+                <td class="text-center" style="background-color: #e0f2f7; border-left: 2px solid #ddd;">
+                    <a href="{{ url_for('rate_product', project_id=project.id, product_id_to_rate=product.id) }}" class="btn btn-sm btn-info" title="Click to rate this product"><i class="fas fa-star"></i> Rate</a>
                 </td>
-                <td>{{ product_weighted_scores.get(product.id) or 0 }}</td>
+                <td class="text-center" style="background-color: #d0e9ff; border-left: 2px solid #ddd;"><strong style="font-size: 1.2em;">{{ product_weighted_scores.get(product.id) or 0 }}</strong></td>
             </tr>
             {% endfor %}
         </tbody>
@@ -96,30 +117,43 @@
 {% else %}
 <p>No products added yet.</p>
 {% endif %}
+
+{% if products and products|length > 0 and product_weighted_scores and product_weighted_scores|length == products|length and product_weighted_scores.values()|max > 0 %}
+<div class="alert alert-success" role="alert">
+    <h4 class="alert-heading">Step 2 Complete!</h4>
+    <p>You have successfully added and rated all products. You can now view your Market Map.</p>
+    <a href="{{ url_for('market_map', project_id=project.id) }}" class="btn btn-primary">View Market Map <i class="fas fa-chart-line"></i></a>
+</div>
+{% else %}
+<a href="{{ url_for('market_map', project_id=project.id) }}" class="btn btn-primary disabled" title="Add and rate products to view Market Map">View Market Map <i class="fas fa-chart-line"></i></a>
+{% endif %}
+
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script>
     document.getElementById('currency').addEventListener('change', function() {
         let selectedCurrency = this.value;
-        let currencySymbol = "£"; // Default
+        let currencySymbol = "£";
         if (selectedCurrency === "usd") {
             currencySymbol = "$";
         } else if (selectedCurrency === "eur") {
             currencySymbol = "€";
-        }
-        else if (selectedCurrency === "jpy") {
+        } else if (selectedCurrency === "jpy") {
             currencySymbol = "¥";
-        }
-        else if (selectedCurrency === "aud") {
+        } else if (selectedCurrency === "aud") {
             currencySymbol = "$";
-        }
-        else if (selectedCurrency === "cad") {
+        } else if (selectedCurrency === "cad") {
             currencySymbol = "$";
         }
         document.getElementById('currency-symbol').textContent = currencySymbol;
     });
+
     $('.custom-file-input').on('change', function(event) {
         let fileName = event.target.files[0].name;
         $(this).next('.custom-file-label').html(fileName);
-    })
+    });
+
+    $('.card-header a').click(function() {
+        $(this).find('i').toggleClass('fa-chevron-down fa-chevron-up');
+    });
 </script>
 {% endblock %}
