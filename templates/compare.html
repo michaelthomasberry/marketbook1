@@ -3,7 +3,7 @@
 {% block content %}
 <h1>Compare Value Drivers for {{ project.name }}</h1>
 
-<p class="lead">Understanding what matters most to you when considering different options is crucial. Value drivers are the key factors that influence your decisions. In this step, you'll compare pairs of value drivers for your project, helping you prioritize what's most important.</p>
+<p class="lead">Understanding what matters most to you when considering different options is crucial. Value drivers are the key factors that influence your decisions. In this step, you'll compare pairs of value drivers, helping you prioritize what's most important.</p>
 
 {% if value_drivers %}
 <form method="POST">
@@ -16,7 +16,7 @@
         <div class="card mb-3 comparison" id="comparison-{{ loop.index }}" {% if not loop.first %}style="display: none;"{% endif %}>
             <div class="card-body">
                 <h5 class="card-title">Compare: {{ vd1.value_driver }} vs. {{ vd2.value_driver }}</h5>
-                <p>Which of these is more important to you when considering "{{ project.name }}"?</p>
+                <p>Which of these is more important to you when considering {{ project.name }}?</p>
                 <div class="d-flex justify-content-around comparison-options" data-name="{{ vd1.id }}-{{ vd2.id }}">
                     <label class="comparison-option" data-value="1" style="width: 45%;">
                         <div class="border p-3 rounded text-center h-100 d-flex align-items-center justify-content-center" style="cursor: pointer;">

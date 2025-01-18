@@ -351,7 +351,7 @@ def value_drivers(project_id):
             value_driver_to_edit.value_driver = request.form.get('edit_value_driver')
             db.session.commit()
             flash('Value Driver updated successfully!', 'success')
-        elif 'edit_measured_by' in request.form: #New elif statement
+        elif 'edit_measured_by' in request.form:  # New elif statement for modal edits
             measured_by_id = request.form.get('edit_measured_by_id')
             measured_by_to_edit = ValueDriver.query.get_or_404(measured_by_id)
             measured_by_to_edit.measured_by = request.form.get('edit_measured_by')
@@ -369,7 +369,7 @@ def value_drivers(project_id):
                 vd.weighting = 0.0
             db.session.commit()
             flash('Value driver weightings have been reset.', 'success')
-        return redirect(url_for('value_drivers', project_id=project_id)) #This line must also be indented to be part of the if statement
+        return redirect(url_for('value_drivers', project_id=project_id))  # Redirect after all POST operations
 
     value_drivers = ValueDriver.query.filter_by(project_id=project_id).all()
     return render_template('value_drivers.html', project=project, value_drivers=value_drivers)
