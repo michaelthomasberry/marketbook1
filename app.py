@@ -14,8 +14,7 @@ import numpy as np #Import numpy
 from werkzeug.utils import secure_filename #Import secure_filename
 import os
 from datetime import datetime #Import datetime for date handling
-
-
+from collections import defaultdict
 
 #################Configurations#####################
 app = Flask(__name__)
@@ -669,6 +668,13 @@ def rate_product(project_id, product_id_to_rate):
     return render_template('rate_product.html', project=project, product=product_to_rate, value_drivers=value_drivers, ratings=ratings_dict)
 
 ######################### View graphs  ##################################
+def generate_colors(num_colors):
+    colors = []
+    for i in range(num_colors):
+        hue = i * (360 / num_colors)
+        colors.append(f"hsl({hue}, 70%, 60%)")
+    return colors
+
 @app.route('/manage/<int:project_id>/market_map')
 @login_required
 def market_map(project_id):
@@ -679,6 +685,18 @@ def market_map(project_id):
 
     products = Product.query.filter_by(project_id=project_id).all()
     value_drivers = ValueDriver.query.filter_by(project_id=project_id).all()
+
+    # Group products by brand
+    products_by_brand = defaultdict(list)
+    for product in products:
+        products_by_brand[product.brand_name].append(product)
+
+    # Generate colors for each brand
+    num_brands = len(products_by_brand)
+    brand_colors = generate_colors(num_brands)
+
+    # Create a brand-to-color mapping
+    brand_color_map = {brand: brand_colors[i] for i, brand in enumerate(products_by_brand)}
 
     scatter_data = []
     bar_chart_data = {}
@@ -703,21 +721,15 @@ def market_map(project_id):
         scatter_data.append({
             'name': product.product_name,
             'price': product.price,
-            'score': total_weighted_score
+            'score': total_weighted_score,
+            'brand': product.brand_name,  # Add brand to scatter data
+            'color': brand_color_map[product.brand_name]  # Add color to scatter data
         })
 
     product_names = [product.product_name for product in products]
     value_driver_names = [vd.value_driver for vd in value_drivers] # Get Value Driver Names
 
-    print("Project ID:", project_id)
-    print("Products:", products)
-    print("Value Drivers:", value_drivers)
-    print("Scatter Data:", scatter_data)
-    print("Bar Chart Data:", bar_chart_data)
-    print("Product Names:", product_names)
-    print("Value Driver Names:", value_driver_names)
-
-    return render_template('market_map.html', project=project, scatter_data=scatter_data, bar_chart_data=bar_chart_data, value_driver_names=value_driver_names, product_names=product_names)
+    return render_template('market_map.html', project=project, scatter_data=scatter_data, bar_chart_data=bar_chart_data, value_driver_names=value_driver_names, product_names=product_names, brand_color_map=brand_color_map)
 
 ####################################Initiate App ############################################
 
