@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, Boolean
 from sqlalchemy.orm import joinedload
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -15,12 +14,17 @@ from werkzeug.utils import secure_filename #Import secure_filename
 import os
 from datetime import datetime #Import datetime for date handling
 from collections import defaultdict
+from flask_migrate import Migrate
 
 #################Configurations#####################
 app = Flask(__name__)
 app.static_folder = 'static'
 app.config['SECRET_KEY'] = 'your_secret_key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'  # Or your database URI
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
+
 # Mail Configuration
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'  # Replace with your mail server
 app.config['MAIL_PORT'] = 587  # Or 465 for SSL
@@ -29,7 +33,6 @@ app.config['MAIL_USERNAME'] = 'your_email@gmail.com'  # Replace with your email
 app.config['MAIL_PASSWORD'] = 'your_email_password'  # Replace with your email password or app password
 app.config['MAIL_DEFAULT_SENDER'] = 'your_email@gmail.com'
 mail = Mail(app)
-db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
@@ -37,8 +40,6 @@ s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
-
-
 
 # Configure upload folder - CORRECT WAY
 UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'uploads') #Correct way to define the upload folder
@@ -87,6 +88,7 @@ class Product(db.Model):
     currency = db.Column(db.String(3), default='gbp')  # Add currency field with default
     image_filename = db.Column(db.String(255))
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
+    price_source = db.Column(db.String(255))  # Add price_source field
 
 def allowed_file(filename):
     """
@@ -147,7 +149,6 @@ def register():
         flash('Account created successfully. Please log in.', 'success')
         return redirect(url_for('login'))
     return render_template('register.html')
-
 
 # Login
 @app.route('/login', methods=['GET', 'POST'])
@@ -502,6 +503,7 @@ def product_comparison(project_id):
             price = request.form.get('price')
             currency = request.form.get('currency') #Get the currency from the form
             image = request.files.get('image')
+            price_source = request.form.get('price_source')  # Get the price source from the form
 
             if not brand_name or not product_name:
                 flash('Brand and product name are required.', 'danger')
@@ -518,7 +520,15 @@ def product_comparison(project_id):
                 flash('Invalid price format.', 'danger')
                 return redirect(url_for('product_comparison', project_id=project_id))
 
-            new_product = Product(brand_name=brand_name, product_name=product_name, price=price, image_filename=filename, project_id=project_id, currency = currency) #Add currency to product
+            new_product = Product(
+                brand_name=brand_name,
+                product_name=product_name,
+                price=price,
+                image_filename=filename,
+                project_id=project_id,
+                currency=currency,
+                price_source=price_source  # Add price_source to product
+            )
             db.session.add(new_product)
             db.session.commit()
             flash('Product added successfully!', 'success')
@@ -579,6 +589,7 @@ def edit_product(project_id, product_id_to_edit):
                 flash("Invalid file type for image upload", 'danger')
                 return redirect(url_for('edit_product', project_id=project_id, product_id_to_edit=product_id_to_edit))
 
+        product_to_edit.price_source = request.form.get('price_source')  # Get the price source from the form
         db.session.commit()
         flash('Product updated successfully!', 'success')
         return redirect(url_for('product_comparison', project_id=project_id))
