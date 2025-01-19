@@ -340,6 +340,16 @@ def value_drivers(project_id):
             if not value_driver:
                 flash('Value Driver is required.', 'danger')
                 return redirect(url_for('value_drivers', project_id=project_id))
+
+            if not measured_by:
+                measured_by = "0: Does not meet the value driver\n" \
+                              "1: Barely meets the value driver\n" \
+                              "2: Somewhat meets the value driver\n" \
+                              "3: Moderately meets the value driver\n" \
+                              "4: Strongly meets the value driver\n" \
+                              "5: Fully meets or exceeds the value driver"
+
+                
             new_value_driver = ValueDriver(value_driver=value_driver, measured_by=measured_by, project_id=project_id)
             db.session.add(new_value_driver)
             db.session.commit()

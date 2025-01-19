@@ -33,6 +33,10 @@
         .navbar {
             background-color: #4169E1;
             padding: 0.5rem 1rem;
+            position: fixed; /* This makes the navbar fixed */
+            width: 100%; /* Ensures it spans the entire width */
+            top: 0; /* Sticks it to the top */
+            z-index: 100; /* Ensures it's above other content */
         }
 
         .navbar-brand {
@@ -53,6 +57,7 @@
             padding: 20px;
             margin-top: 20px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding-top: 80px; /* Add padding to prevent content overlap */
         }
 
         .footer {
