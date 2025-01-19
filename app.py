@@ -349,7 +349,6 @@ def value_drivers(project_id):
                               "4: Strongly meets the value driver\n" \
                               "5: Fully meets or exceeds the value driver"
 
-                
             new_value_driver = ValueDriver(value_driver=value_driver, measured_by=measured_by, project_id=project_id)
             db.session.add(new_value_driver)
             db.session.commit()
@@ -369,6 +368,10 @@ def value_drivers(project_id):
         elif 'delete_value_driver' in request.form:
             value_driver_id = request.form.get('delete_value_driver_id')
             value_driver_to_delete = ValueDriver.query.get_or_404(value_driver_id)
+
+            # Delete ratings referencing this value driver before deleting the value driver
+            Rating.query.filter_by(value_driver_id=value_driver_id).delete()
+
             db.session.delete(value_driver_to_delete)
             db.session.commit()
             flash('Value Driver deleted successfully!', 'success')
