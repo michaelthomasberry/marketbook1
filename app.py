@@ -107,6 +107,17 @@ class Rating(db.Model):
     product = db.relationship('Product', backref=db.backref('ratings', lazy=True))
     value_driver = db.relationship('ValueDriver', backref=db.backref('ratings', lazy=True))
 
+# Comment Model
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    note = db.Column(db.Text, nullable=False)
+    date = db.Column(db.DateTime, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
+
+    user = db.relationship('User', backref=db.backref('comments', lazy=True))
+    project = db.relationship('Project', backref=db.backref('comments', lazy=True))
+
 
 ############################## Routes  #######################################################################
 ###########Routes For Logging a user in ##############
@@ -699,7 +710,7 @@ def generate_colors(num_colors):
         colors.append(f"hsl({hue}, 70%, 60%)")
     return colors
 
-@app.route('/manage/<int:project_id>/market_map')
+@app.route('/manage/<int:project_id>/market_map', methods=['GET', 'POST'])
 @login_required
 def market_map(project_id):
     project = Project.query.get_or_404(project_id)
@@ -707,8 +718,19 @@ def market_map(project_id):
         flash('You are not authorized to manage this project.', 'danger')
         return redirect(url_for('dashboard'))
 
+    if request.method == 'POST':
+        note = request.form.get('note')
+        if note:
+            new_comment = Comment(note=note, user_id=current_user.id, project_id=project_id)
+            db.session.add(new_comment)
+            db.session.commit()
+            flash('Comment added successfully!', 'success')
+        else:
+            flash('Comment cannot be empty.', 'danger')
+
     products = Product.query.filter_by(project_id=project_id).all()
     value_drivers = ValueDriver.query.filter_by(project_id=project_id).all()
+    comments = Comment.query.filter_by(project_id=project_id).order_by(Comment.date.desc()).all()
 
     # Group products by brand
     products_by_brand = defaultdict(list)
@@ -753,7 +775,33 @@ def market_map(project_id):
     product_names = [product.product_name for product in products]
     value_driver_names = [vd.value_driver for vd in value_drivers] # Get Value Driver Names
 
-    return render_template('market_map.html', project=project, scatter_data=scatter_data, bar_chart_data=bar_chart_data, value_driver_names=value_driver_names, product_names=product_names, brand_color_map=brand_color_map)
+    return render_template('market_map.html', project=project, scatter_data=scatter_data, bar_chart_data=bar_chart_data, value_driver_names=value_driver_names, product_names=product_names, brand_color_map=brand_color_map, comments=comments)
+
+@app.route('/manage/<int:project_id>/comment/<int:comment_id>/edit', methods=['POST'])
+@login_required
+def edit_comment(project_id, comment_id):
+    comment = Comment.query.get_or_404(comment_id)
+    if comment.user_id != current_user.id:
+        flash('You are not authorized to edit this comment.', 'danger')
+        return redirect(url_for('market_map', project_id=project_id))
+
+    comment.note = request.form.get('note')
+    db.session.commit()
+    flash('Comment updated successfully!', 'success')
+    return redirect(url_for('market_map', project_id=project_id))
+
+@app.route('/manage/<int:project_id>/comment/<int:comment_id>/delete', methods=['POST'])
+@login_required
+def delete_comment(project_id, comment_id):
+    comment = Comment.query.get_or_404(comment_id)
+    if comment.user_id != current_user.id:
+        flash('You are not authorized to delete this comment.', 'danger')
+        return redirect(url_for('market_map', project_id=project_id))
+
+    db.session.delete(comment)
+    db.session.commit()
+    flash('Comment deleted successfully!', 'success')
+    return redirect(url_for('market_map', project_id=project_id))
 
 ####################################Initiate App ############################################
 

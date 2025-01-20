@@ -233,4 +233,51 @@
     </div>
 </div>
 
+<!-- Comment Section -->
+<div class="container mt-4">
+    <h2>Comments</h2>
+    <form method="POST" action="{{ url_for('market_map', project_id=project.id) }}">
+        <div class="form-group">
+            <label for="note">Add a Comment:</label>
+            <textarea class="form-control" id="note" name="note" rows="3" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary mt-2">Submit</button>
+    </form>
+
+    <h3 class="mt-4">Previous Comments</h3>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Note</th>
+                <th>Date</th>
+                <th>Username</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for comment in comments %}
+            <tr>
+                <td>
+                    <form method="POST" action="{{ url_for('edit_comment', project_id=project.id, comment_id=comment.id) }}">
+                        <textarea class="form-control" name="note" rows="2">{{ comment.note }}</textarea>
+                        <button type="submit" class="btn btn-sm btn-primary mt-1">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </form>
+                </td>
+                <td>{{ comment.date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>{{ comment.user.username }}</td>
+                <td>
+                    <form method="POST" action="{{ url_for('delete_comment', project_id=project.id, comment_id=comment.id) }}">
+                        <button type="submit" class="btn btn-sm btn-danger">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
 {% endblock %}
