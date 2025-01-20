@@ -33,7 +33,7 @@
                     <select class="form-control" id="brandFilter" multiple>
                         <option value="all" selected>All Brands</option>
                         {% for brand in brand_color_map.keys() %}
-                        <option value="{{ brand }}">{{ brand }}</option>
+                            <option value="{{ brand }}">{{ brand }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -52,84 +52,53 @@
                         const toggleLabelsCheckbox = document.getElementById('toggleLabels');
                         const brandFilter = document.getElementById('brandFilter');
 
-                        let scatterChart = null;
+                        let scatterChart = new Chart(ctx, {
+                            type: 'scatter',
+                            data: { labels: [], datasets: [{ label: 'Products', data: [], backgroundColor: [], pointRadius: 6 }] },
+                            options: {
+                                responsive: true, maintainAspectRatio: false,
+                                scales: { x: { title: { display: true, text: 'Weighted Score' }, min: 0, max: 5 }, y: { title: { display: true, text: 'Price' }, min: 0 } },
+                                plugins: {
+                                    tooltip: {
+                                        callbacks: {
+                                            label: (context) => {
+                                                let label = context.dataset.label || ''; if (label) label += ': ';
+                                                if (context.parsed.y !== null) label += `Price: ${context.parsed.y}, Score: ${context.parsed.x}`;
+                                                let filteredData = filterDataByBrand();
+                                                label += `\nProduct Name: ${filteredData[context.dataIndex].name}\nBrand: ${filteredData[context.dataIndex].brand}`;
+                                                return label;
+                                            },
+                                            labelColor: (context) => {
+                                                let filteredData = filterDataByBrand();
+                                                return { borderColor: 'black', backgroundColor: filteredData[context.dataIndex].color };
+                                            }
+                                        }
+                                    },
+                                    annotation: { annotations: [] }
+                                }
+                            }
+                        });
 
                         function updateScatterChart(filteredData) {
                             const labels = filteredData.map(item => item.name);
                             const prices = filteredData.map(item => item.price);
                             const scores = filteredData.map(item => item.score);
                             const productColors = filteredData.map(item => item.color);
-
                             const highestPrice = Math.max(...prices);
                             const yMax = highestPrice * 1.2;
-
-                            if (scatterChart) {
-                                scatterChart.destroy();
-                            }
-
-                            scatterChart = new Chart(ctx, {
-                                type: 'scatter',
-                                data: {
-                                    labels: labels,
-                                    datasets: [{
-                                        label: 'Products',
-                                        data: prices.map((price, index) => ({ x: scores[index], y: price })),
-                                        backgroundColor: productColors,
-                                        pointRadius: 6
-                                    }]
-                                },
-                                options: {
-                                    responsive: true,
-                                    maintainAspectRatio: false,
-                                    scales: {
-                                        x: {
-                                            title: { display: true, text: 'Weighted Score' },
-                                            min: 0,
-                                            max: 5
-                                        },
-                                        y: {
-                                            title: { display: true, text: 'Price' },
-                                            min: 0,
-                                            max: yMax
-                                        }
-                                    },
-                                    plugins: {
-                                        tooltip: {
-                                            callbacks: {
-                                                label: (context) => {
-                                                    let label = context.dataset.label || '';
-                                                    if (label) label += ': ';
-                                                    if (context.parsed.y !== null) label += `Price: ${context.parsed.y}, Score: ${context.parsed.x}`;
-                                                    label += `\nProduct Name: ${filteredData[context.dataIndex].name}\nBrand: ${filteredData[context.dataIndex].brand}`;
-                                                    return label;
-                                                },
-                                                labelColor: (context) => ({ borderColor: 'black', backgroundColor: productColors[context.dataIndex] })
-                                            }
-                                        },
-                                        annotation: {
-                                            annotations: []
-                                        }
-                                    }
-                                }
-                            });
-
-                            updateAnnotations();
+                            scatterChart.data.labels = labels;
+                            scatterChart.data.datasets[0].data = prices.map((price, index) => ({ x: scores[index], y: price }));
+                            scatterChart.data.datasets[0].backgroundColor = productColors;
+                            scatterChart.options.scales.y.max = yMax;
+                            scatterChart.update();
+                            updateAnnotations(filteredData);
                         }
 
-                        function updateAnnotations() {
+                        function updateAnnotations(filteredData) {
                             const annotations = [];
                             if (toggleLabelsCheckbox.checked) {
-                                scatterChart.data.datasets[0].data.forEach((point, index) => {
-                                    annotations.push({
-                                        type: 'label',
-                                        xValue: point.x,
-                                        yValue: point.y,
-                                        xAdjust: 10,
-                                        yAdjust: -10,
-                                        content: scatterChart.data.labels[index],
-                                        font: { size: 10 },
-                                        color: 'black'
-                                    });
+                                filteredData.forEach((item) => {
+                                    annotations.push({ type: 'label', xValue: item.score, yValue: item.price, xAdjust: 10, yAdjust: -10, content: item.name, font: { size: 10 }, color: 'black' });
                                 });
                             }
                             scatterChart.options.plugins.annotation.annotations = annotations;
@@ -138,46 +107,28 @@
 
                         function filterDataByBrand() {
                             const selectedBrands = Array.from(brandFilter.selectedOptions).map(option => option.value);
-                            if (selectedBrands.includes('all')) {
-                                return scatterData;
-                            }
-                            return scatterData.filter(item => selectedBrands.includes(item.brand));
+                            return selectedBrands.includes('all') ? scatterData : scatterData.filter(item => selectedBrands.includes(item.brand));
                         }
 
-                        brandFilter.addEventListener('change', () => {
-                            const filteredData = filterDataByBrand();
-                            updateScatterChart(filteredData);
-                            updateBarCharts(filteredData);
-                        });
-
-                        toggleLabelsCheckbox.addEventListener('change', updateAnnotations);
-
+                        brandFilter.addEventListener('change', () => { const filteredData = filterDataByBrand(); updateScatterChart(filteredData); updateBarCharts(filteredData); });
+                        toggleLabelsCheckbox.addEventListener('change', () => updateAnnotations(filterDataByBrand()));
                         updateScatterChart(scatterData);
 
                         const legendContainer = document.getElementById('chart-legend');
                         const brands = [...new Set(scatterData.map(item => item.brand))];
-
                         brands.forEach(brand => {
                             const legendItem = document.createElement('div');
                             legendItem.style.cssText = 'display: flex; align-items: center; margin-right: 20px; margin-bottom: 10px;';
-
                             const colorBox = document.createElement('div');
                             colorBox.style.cssText = 'width: 16px; height: 16px; background-color: ' + brandColorMap[brand] + '; border: 1px solid black; margin-right: 5px;';
-
-                            const text = document.createElement('span');
-                            text.textContent = brand;
-
-                            legendItem.appendChild(colorBox);
-                            legendItem.appendChild(text);
-                            legendContainer.appendChild(legendItem);
+                            const text = document.createElement('span'); text.textContent = brand;
+                            legendItem.appendChild(colorBox); legendItem.appendChild(text); legendContainer.appendChild(legendItem);
                         });
 
                         function updateBarCharts(filteredData) {
                             const productNames = filteredData.map(item => item.name);
                             const productNameColorMap = {};
-                            filteredData.forEach(item => {
-                                productNameColorMap[item.name] = item.color;
-                            });
+                            filteredData.forEach(item => { productNameColorMap[item.name] = item.color; });
 
                             valueDriverNames.forEach((vdName, i) => {
                                 const scores = barChartData[vdName].filter((_, index) => productNames.includes(productNames[index]));
@@ -185,28 +136,10 @@
 
                                 if (ctxBar && scores.length > 0 && productNames.length === scores.length) {
                                     const barColors = productNames.map(productName => productNameColorMap[productName]);
-
                                     new Chart(ctxBar, {
                                         type: 'bar',
-                                        data: {
-                                            labels: productNames,
-                                            datasets: [{
-                                                data: scores,
-                                                backgroundColor: barColors,
-                                                borderColor: 'rgba(0, 0, 0, 1)',
-                                                borderWidth: 1
-                                            }]
-                                        },
-                                        options: {
-                                            plugins: { legend: { display: false } },
-                                            scales: {
-                                                y: {
-                                                    beginAtZero: true,
-                                                    max: 5,
-                                                    ticks: { stepSize: 1 }
-                                                }
-                                            }
-                                        }
+                                        data: { labels: productNames, datasets: [{ data: scores, backgroundColor: barColors, borderColor: 'rgba(0, 0, 0, 1)', borderWidth: 1 }] },
+                                        options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 5, ticks: { stepSize: 1 } } } }
                                     });
                                 } else {
                                     const chartContainer = document.getElementById(`barChart${i + 1}`).parentNode;
@@ -214,14 +147,9 @@
                                 }
                             });
                         }
-
-                        updateBarCharts(scatterData);
-                    } catch (error) {
-                        console.error("An error occurred in the JavaScript:", error);
-                    }
+                    } catch (error) { console.error("An error occurred in the JavaScript:", error); }
                 </script>
             {% endif %}
-
             {% if bar_chart_data and product_names and value_driver_names and product_names|length > 0 and value_driver_names|length > 0 %}
     <h2>Value Drivers</h2>
     <div class="row justify-content-center">
