@@ -150,84 +150,147 @@
                     } catch (error) { console.error("An error occurred in the JavaScript:", error); }
                 </script>
             {% endif %}
-            {% if bar_chart_data and product_names and value_driver_names and product_names|length > 0 and value_driver_names|length > 0 %}
-    <h2>Value Drivers</h2>
-    <div class="row justify-content-center">
-        {% for vd_name in value_driver_names %}
-            <div class="col-md-5 mb-4 border p-3" style="box-sizing: border-box;">
-                <h3>{{ vd_name }}</h3>
-                <canvas id="barChart{{ loop.index }}"></canvas>
-            </div>
-        {% endfor %}
-    </div>
+            {% if bar_chart_data and product_names and value_driver_names %}
+                <h2>Value Drivers</h2>
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="brandFilterBarCharts">Filter by Brand:</label>
+                            <select class="form-control" id="brandFilterBarCharts" multiple>
+                                <option value="all" selected>All Brands</option>
+                                {% for brand in brand_color_map.keys() %}
+                                    <option value="{{ brand }}">{{ brand }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="productFilterBarCharts">Filter by Product:</label>
+                            <select class="form-control" id="productFilterBarCharts" multiple>
+                                <option value="all" selected>All Products</option>
+                                {% for product in product_names %}
+                                    <option value="{{ product }}">{{ product }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="row justify-content-center">
+                            {% for vd_name in value_driver_names %}
+                                <div class="col-md-6 mb-4 border p-3">
+                                    <h3>{{ vd_name }}</h3>
+                                    <p>Value Weighting: {{ "%.1f"|format(value_drivers[loop.index0].weighting) }}%</p>
+                                    <p>Measured By: {{ value_drivers[loop.index0].measured_by }}</p>
+                                    <canvas id="barChart{{ loop.index }}"></canvas>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        try {
-            const productNames = {{ product_names|tojson }};
-            const barChartData = {{ bar_chart_data|tojson }};
-            const valueDriverNames = {{ value_driver_names|tojson }};
-            const scatterData = {{ scatter_data|tojson }};
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const productNames = JSON.parse('{{ product_names|tojson|safe }}');
+                        const barChartData = JSON.parse('{{ bar_chart_data|tojson|safe }}');
+                        const valueDriverNames = JSON.parse('{{ value_driver_names|tojson|safe }}');
+                        const scatterData = JSON.parse('{{ scatter_data|tojson|safe }}');
+                        const brandFilterBarCharts = document.getElementById('brandFilterBarCharts');
+                        const productFilterBarCharts = document.getElementById('productFilterBarCharts');
 
-            // Create a product name to color map (CRUCIAL!)
-            const productNameColorMap = {};
-            scatterData.forEach(item => {
-                productNameColorMap[item.name] = item.color;
-            });
+                        const productNameBrandMap = {};
+                        scatterData.forEach(item => {
+                            productNameBrandMap[item.name] = item.brand;
+                        });
+                        const productNameColorMap = {};
+                        scatterData.forEach(item => {
+                            productNameColorMap[item.name] = item.color;
+                        });
 
-            console.log("productNames from template:", productNames);
-            console.log("barChartData from template:", barChartData);
-            console.log("valueDriverNames from template:", valueDriverNames);
-            console.log("scatterData from template:", scatterData);
-            console.log("productNameColorMap:", productNameColorMap);
-
-
-            for (let i = 0; i < valueDriverNames.length; i++) {
-                const vdName = valueDriverNames[i];
-                const scores = barChartData[vdName];
-                const ctxBar = document.getElementById(`barChart${i + 1}`).getContext('2d');
-
-                if (ctxBar && scores && scores.length > 0 && productNames.length === scores.length) { //Add check to ensure arrays are same length
-                    // Create colors for the bar chart based on product names
-                    const barColors = productNames.map(productName => productNameColorMap[productName]);
-
-                    console.log("barColors:", barColors);
-                    console.log(`Creating bar chart for ${vdName} with scores:`, scores);
-                    new Chart(ctxBar, {
-                        type: 'bar',
-                        data: {
-                            labels: productNames,
-                            datasets: [{
-                                data: scores,
-                                backgroundColor: barColors, // Correctly use the mapped colors
-                                borderColor: 'rgba(0, 0, 0, 1)',
-                                borderWidth: 1
-                            }]
-                        },
-                        options: {
-                            plugins: { legend: { display: false } },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    max: 5,
-                                    ticks: { stepSize: 1 }
-                                }
-                            }
+                        function updateProductFilterOptions(filteredProductNames) {
+                            productFilterBarCharts.innerHTML = '<option value="all" selected>All Products</option>';
+                            filteredProductNames.forEach(productName => {
+                                const option = document.createElement('option');
+                                option.value = productName;
+                                option.textContent = productName;
+                                productFilterBarCharts.appendChild(option);
+                            });
                         }
+
+                        function updateBarCharts(filteredProductNames) {
+                            valueDriverNames.forEach((vdName, i) => {
+                                const filteredScores = [];
+                                const filteredColors = [];
+                                const filteredLabels = [];
+
+                                for (let j = 0; j < productNames.length; j++) {
+                                    if (filteredProductNames.includes(productNames[j])) {
+                                        filteredScores.push(barChartData[vdName][j]);
+                                        filteredColors.push(productNameColorMap[productNames[j]]);
+                                        filteredLabels.push(productNames[j]);
+                                    }
+                                }
+
+                                const ctxBar = document.getElementById(`barChart${i + 1}`).getContext('2d');
+                                if (ctxBar && filteredScores.length > 0) {
+                                    if (ctxBar.chart) {
+                                        ctxBar.chart.destroy();
+                                    }
+                                    ctxBar.chart = new Chart(ctxBar, {
+                                        type: 'bar',
+                                        data: {
+                                            labels: filteredLabels,
+                                            datasets: [{
+                                                data: filteredScores,
+                                                backgroundColor: filteredColors,
+                                                borderColor: 'rgba(0, 0, 0, 1)',
+                                                borderWidth: 1
+                                            }]
+                                        },
+                                        options: {
+                                            plugins: { legend: { display: false } },
+                                            scales: { y: { beginAtZero: true, max: 5, ticks: { stepSize: 1 } } }
+                                        }
+                                    });
+                                } else {
+                                    const chartContainer = document.getElementById(`barChart${i + 1}`).parentNode;
+                                    chartContainer.innerHTML = `<p>No data available to display ${vdName} chart.</p>`;
+                                }
+                            });
+                        }
+
+                        function filterDataByBrandAndProduct() {
+                            const selectedBrands = Array.from(brandFilterBarCharts.selectedOptions).map(option => option.value);
+                            const selectedProducts = Array.from(productFilterBarCharts.selectedOptions).map(option => option.value);
+
+                            let filteredProductNames = productNames;
+
+                            if (!selectedBrands.includes('all')) {
+                                filteredProductNames = filteredProductNames.filter(productName => selectedBrands.includes(productNameBrandMap[productName]));
+                            }
+
+                            if (!selectedProducts.includes('all')) {
+                                filteredProductNames = filteredProductNames.filter(productName => selectedProducts.includes(productName));
+                            }
+
+                            return filteredProductNames;
+                        }
+
+                        brandFilterBarCharts.addEventListener('change', () => {
+                            const filteredProductNames = filterDataByBrandAndProduct();
+                            updateProductFilterOptions(filteredProductNames);
+                            updateBarCharts(filteredProductNames);
+                        });
+
+                        productFilterBarCharts.addEventListener('change', () => {
+                            const filteredProductNames = filterDataByBrandAndProduct();
+                            updateBarCharts(filteredProductNames);
+                        });
+
+                        const initialFilteredProductNames = filterDataByBrandAndProduct();
+                        updateProductFilterOptions(initialFilteredProductNames);
+                        updateBarCharts(initialFilteredProductNames);
                     });
-                } else {
-                    console.error(`Canvas or scores for ${vdName} not found. ctxBar:`, ctxBar, "scores:", scores);
-                    if (productNames.length !== scores.length) {
-                        console.error("productNames and scores arrays have different lengths!");
-                    }
-                    const chartContainer = document.getElementById(`barChart${i + 1}`).parentNode;
-                    chartContainer.innerHTML = `<p>No data available to display ${vdName} chart.</p>`;
-                }
-            }
-        } catch (error) {
-            console.error("An error occurred in the JavaScript:", error);
-        }
-    </script>
+                </script>
             {% endif %}
         </div>
     </div>

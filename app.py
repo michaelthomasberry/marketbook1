@@ -775,7 +775,7 @@ def market_map(project_id):
     product_names = [product.product_name for product in products]
     value_driver_names = [vd.value_driver for vd in value_drivers] # Get Value Driver Names
 
-    return render_template('market_map.html', project=project, scatter_data=scatter_data, bar_chart_data=bar_chart_data, value_driver_names=value_driver_names, product_names=product_names, brand_color_map=brand_color_map, comments=comments)
+    return render_template('market_map.html', project=project, scatter_data=scatter_data, bar_chart_data=bar_chart_data, value_driver_names=value_driver_names, product_names=product_names, brand_color_map=brand_color_map, comments=comments, value_drivers=value_drivers)
 
 @app.route('/manage/<int:project_id>/comment/<int:comment_id>/edit', methods=['POST'])
 @login_required
