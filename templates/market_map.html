@@ -37,6 +37,15 @@
                         {% endfor %}
                     </select>
                 </div>
+                <div class="form-group">
+                    <label for="productFilter">Filter by Product:</label>
+                    <select class="form-control" id="productFilter" multiple>
+                        <option value="all" selected>All Products</option>
+                        {% for product in product_names %}
+                            <option value="{{ product }}">{{ product }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
                 <div style="height: 500px;">
                     <canvas id="marketChart"></canvas>
                 </div>
@@ -51,6 +60,7 @@
                         const brandColorMap = {{ brand_color_map|tojson }};
                         const toggleLabelsCheckbox = document.getElementById('toggleLabels');
                         const brandFilter = document.getElementById('brandFilter');
+                        const productFilter = document.getElementById('productFilter');
 
                         let scatterChart = new Chart(ctx, {
                             type: 'scatter',
@@ -64,12 +74,12 @@
                                             label: (context) => {
                                                 let label = context.dataset.label || ''; if (label) label += ': ';
                                                 if (context.parsed.y !== null) label += `Price: ${context.parsed.y}, Score: ${context.parsed.x}`;
-                                                let filteredData = filterDataByBrand();
+                                                let filteredData = filterDataByBrandAndProduct();
                                                 label += `\nProduct Name: ${filteredData[context.dataIndex].name}\nBrand: ${filteredData[context.dataIndex].brand}`;
                                                 return label;
                                             },
                                             labelColor: (context) => {
-                                                let filteredData = filterDataByBrand();
+                                                let filteredData = filterDataByBrandAndProduct();
                                                 return { borderColor: 'black', backgroundColor: filteredData[context.dataIndex].color };
                                             }
                                         }
@@ -105,13 +115,48 @@
                             scatterChart.update();
                         }
 
-                        function filterDataByBrand() {
+                        function filterDataByBrandAndProduct() {
                             const selectedBrands = Array.from(brandFilter.selectedOptions).map(option => option.value);
-                            return selectedBrands.includes('all') ? scatterData : scatterData.filter(item => selectedBrands.includes(item.brand));
+                            const selectedProducts = Array.from(productFilter.selectedOptions).map(option => option.value);
+
+                            let filteredData = scatterData;
+
+                            if (!selectedBrands.includes('all')) {
+                                filteredData = filteredData.filter(item => selectedBrands.includes(item.brand));
+                            }
+
+                            if (!selectedProducts.includes('all')) {
+                                filteredData = filteredData.filter(item => selectedProducts.includes(item.name));
+                            }
+
+                            return filteredData;
                         }
 
-                        brandFilter.addEventListener('change', () => { const filteredData = filterDataByBrand(); updateScatterChart(filteredData); updateBarCharts(filteredData); });
-                        toggleLabelsCheckbox.addEventListener('change', () => updateAnnotations(filterDataByBrand()));
+                        function updateProductFilterOptions(filteredData) {
+                            const productFilter = document.getElementById('productFilter');
+                            productFilter.innerHTML = '<option value="all" selected>All Products</option>';
+                            filteredData.forEach(item => {
+                                const option = document.createElement('option');
+                                option.value = item.name;
+                                option.textContent = item.name;
+                                productFilter.appendChild(option);
+                            });
+                        }
+
+                        brandFilter.addEventListener('change', () => {
+                            const filteredData = filterDataByBrandAndProduct();
+                            updateProductFilterOptions(filteredData);
+                            updateScatterChart(filteredData);
+                            updateBarCharts(filteredData);
+                        });
+
+                        productFilter.addEventListener('change', () => {
+                            const filteredData = filterDataByBrandAndProduct();
+                            updateScatterChart(filteredData);
+                            updateBarCharts(filteredData);
+                        });
+
+                        toggleLabelsCheckbox.addEventListener('change', () => updateAnnotations(filterDataByBrandAndProduct()));
                         updateScatterChart(scatterData);
 
                         const legendContainer = document.getElementById('chart-legend');
@@ -320,27 +365,57 @@
         <tbody>
             {% for comment in comments %}
             <tr>
-                <td>
-                    <form method="POST" action="{{ url_for('edit_comment', project_id=project.id, comment_id=comment.id) }}">
-                        <textarea class="form-control" name="note" rows="2">{{ comment.note }}</textarea>
-                        <button type="submit" class="btn btn-sm btn-primary mt-1">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                    </form>
-                </td>
+                <td>{{ comment.note }}</td>
                 <td>{{ comment.date.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                 <td>{{ comment.user.username }}</td>
                 <td>
-                    <form method="POST" action="{{ url_for('delete_comment', project_id=project.id, comment_id=comment.id) }}">
+                    <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#editCommentModal{{ comment.id }}">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <form method="POST" action="{{ url_for('delete_comment', project_id=project.id, comment_id=comment.id) }}" style="display:inline;">
                         <button type="submit" class="btn btn-sm btn-danger">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     </form>
                 </td>
             </tr>
+
+            <!-- Edit Comment Modal -->
+            <div class="modal fade" id="editCommentModal{{ comment.id }}" tabindex="-1" role="dialog" aria-labelledby="editCommentModalLabel{{ comment.id }}" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="editCommentModalLabel{{ comment.id }}">Edit Comment</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <form method="POST" action="{{ url_for('edit_comment', project_id=project.id, comment_id=comment.id) }}">
+                                <div class="form-group">
+                                    <label for="note">Comment:</label>
+                                    <textarea class="form-control" id="note" name="note" rows="3" required>{{ comment.note }}</textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Save changes</button>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <form method="POST" action="{{ url_for('delete_comment', project_id=project.id, comment_id=comment.id) }}">
+                                <button type="submit" class="btn btn-danger">Delete Comment</button>
+                            </form>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
             {% endfor %}
         </tbody>
     </table>
 </div>
+
+<!-- Include Bootstrap JS for modal functionality -->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 
 {% endblock %}

@@ -118,6 +118,12 @@ class Comment(db.Model):
     user = db.relationship('User', backref=db.backref('comments', lazy=True))
     project = db.relationship('Project', backref=db.backref('comments', lazy=True))
 
+class ComparisonResult(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
+    value_driver_a_id = db.Column(db.Integer, db.ForeignKey('value_driver.id'), nullable=False)
+    value_driver_b_id = db.Column(db.Integer, db.ForeignKey('value_driver.id'), nullable=False)
+    winner_id = db.Column(db.Integer, db.ForeignKey('value_driver.id'), nullable=False)
 
 ############################## Routes  #######################################################################
 ###########Routes For Logging a user in ##############
@@ -391,12 +397,22 @@ def value_drivers(project_id):
             value_drivers_to_reset = ValueDriver.query.filter_by(project_id=project_id).all()
             for vd in value_drivers_to_reset:
                 vd.weighting = 0.0
+            # Delete associated comparison results
+            ComparisonResult.query.filter_by(project_id=project_id).delete()
             db.session.commit()
-            flash('Value driver weightings have been reset.', 'success')
+            flash('Value driver weightings have been reset and comparison results deleted.', 'success')
         return redirect(url_for('value_drivers', project_id=project_id))  # Redirect after all POST operations
 
     value_drivers = ValueDriver.query.filter_by(project_id=project_id).all()
-    return render_template('value_drivers.html', project=project, value_drivers=value_drivers)
+    comparisons = {}  # Initialize comparisons as an empty dictionary
+
+    # Fetch comparison results from the database
+    comparison_results = ComparisonResult.query.filter_by(project_id=project_id).all()
+
+    # Create a dictionary to map value driver IDs to their names
+    value_drivers_dict = {vd.id: vd.value_driver for vd in value_drivers}
+
+    return render_template('value_drivers.html', project=project, value_drivers=value_drivers, comparisons=comparisons, comparison_results=comparison_results, value_drivers_dict=value_drivers_dict)
 
 # Compare value drivers
 @app.route('/manage/<int:project_id>/compare', methods=['GET', 'POST'])
@@ -436,8 +452,19 @@ def compare_value_drivers(project_id):
             if index1 is not None and index2 is not None: # check if indexs are valid
                 if value == 1:
                     matrix[index1, index2] = 1
+                    winner_id = id1
                 elif value == 2:
                     matrix[index2, index1] = 1
+                    winner_id = id2
+
+                # Save the comparison result to the database
+                comparison_result = ComparisonResult(
+                    project_id=project_id,
+                    value_driver_a_id=id1,
+                    value_driver_b_id=id2,
+                    winner_id=winner_id
+                )
+                db.session.add(comparison_result)
 
         # Handle cases where a row is all zeros to prevent errors in mean calculation and assign weights
         for i in range(num_drivers):
@@ -622,17 +649,19 @@ def delete_product(project_id, product_id_to_delete):
         flash('Product not found in this project.', 'danger')
         return redirect(url_for('product_comparison', project_id=project_id))
 
-    # ***THIS IS THE CRUCIAL CHANGE***
     # Delete associated ratings FIRST
     Rating.query.filter_by(product_id=product_id_to_delete).delete()
-    db.session.commit() #Commit ratings deletion before product deletion
+    db.session.commit() # Commit ratings deletion before product deletion
 
+    # Check if the image is used by other products before deleting
     if product_to_delete.image_filename:
-        image_path = os.path.join(app.config['UPLOAD_FOLDER'], product_to_delete.image_filename)
-        try:
-            os.remove(image_path)
-        except FileNotFoundError:
-            pass
+        other_products_with_same_image = Product.query.filter_by(image_filename=product_to_delete.image_filename).count()
+        if other_products_with_same_image == 1:  # Only delete the image if no other products are using it
+            image_path = os.path.join(app.config['UPLOAD_FOLDER'], product_to_delete.image_filename)
+            try:
+                os.remove(image_path)
+            except FileNotFoundError:
+                pass
 
     db.session.delete(product_to_delete)
     db.session.commit()
@@ -802,6 +831,46 @@ def delete_comment(project_id, comment_id):
     db.session.commit()
     flash('Comment deleted successfully!', 'success')
     return redirect(url_for('market_map', project_id=project_id))
+
+@app.route('/manage/<int:project_id>/product/<int:product_id_to_duplicate>/duplicate', methods=['POST'])
+@login_required
+def duplicate_product(project_id, product_id_to_duplicate):
+    project = Project.query.get_or_404(project_id)
+    if project.user_id != current_user.id:
+        flash('You are not authorized to manage this project.', 'danger')
+        return redirect(url_for('dashboard'))
+
+    product_to_duplicate = Product.query.get_or_404(product_id_to_duplicate)
+    if product_to_duplicate.project_id != project_id:
+        flash('Product not found in this project.', 'danger')
+        return redirect(url_for('product_comparison', project_id=project_id))
+
+    new_product = Product(
+        brand_name=product_to_duplicate.brand_name,
+        product_name=product_to_duplicate.product_name + " (Copy)",
+        price=product_to_duplicate.price,
+        currency=product_to_duplicate.currency,
+        image_filename=product_to_duplicate.image_filename,
+        project_id=project_id,
+        price_source=product_to_duplicate.price_source
+    )
+    db.session.add(new_product)
+    db.session.commit()
+
+    # Duplicate the ratings
+    ratings_to_duplicate = Rating.query.filter_by(product_id=product_id_to_duplicate).all()
+    for rating in ratings_to_duplicate:
+        new_rating = Rating(
+            product_id=new_product.id,
+            value_driver_id=rating.value_driver_id,
+            score=rating.score,
+            date_rated=rating.date_rated
+        )
+        db.session.add(new_rating)
+
+    db.session.commit()
+    flash('Product duplicated successfully!', 'success')
+    return redirect(url_for('product_comparison', project_id=project_id))
 
 ####################################Initiate App ############################################
 
