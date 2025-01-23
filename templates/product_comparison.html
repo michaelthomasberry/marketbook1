@@ -57,13 +57,39 @@
                         <input type="file" class="custom-file-input" id="image" name="image" accept="image/*">
                         <label class="custom-file-label" for="image">Choose file</label>
                     </div>
+                    <div id="drop-zone" class="border p-3 mt-2 text-center">
+                        Drag & Drop Image Here
+                    </div>
                     <small class="form-text text-muted">Supported formats: png, jpg, jpeg, gif</small>
                 </div>
                 <button type="submit" name="add_product" class="btn btn-primary">Add Product</button>
             </form>
         </div>
     </div>
-</div>
+    <script>
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('image');
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('bg-light');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('bg-light');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('bg-light');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                fileInput.files = files;
+                const fileName = files[0].name;
+                document.querySelector('.custom-file-label').textContent = fileName;
+            }
+        });
+    </script>
 
 {% if products %}
 <div class="table-responsive">

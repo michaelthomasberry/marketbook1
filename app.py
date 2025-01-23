@@ -70,6 +70,14 @@ class Project(db.Model):
     description = db.Column(db.Text)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     has_market_map = db.Column(db.Boolean, default=False)  # EXACTLY like this
+    shared_users = db.relationship('User', secondary='project_user', backref='shared_projects')
+
+# Association table for shared projects with pending status
+project_user = db.Table('project_user',
+    db.Column('project_id', db.Integer, db.ForeignKey('project.id'), primary_key=True),
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('status', db.String(10), default='pending')  # Add status column
+)
 
 # Value Driver
 class ValueDriver(db.Model):
@@ -271,7 +279,48 @@ def dashboard():
         return redirect(url_for('dashboard'))
 
     projects = Project.query.filter_by(user_id=current_user.id).all()
-    return render_template('dashboard.html', projects=projects)
+    shared_projects = Project.query.join(project_user).filter(
+        project_user.c.user_id == current_user.id,
+        project_user.c.status == 'accepted'
+    ).all()
+    pending_invitations = Project.query.join(project_user).filter(
+        project_user.c.user_id == current_user.id,
+        project_user.c.status == 'pending'
+    ).all()
+
+    pending_invitations_with_owners = [(project, User.query.get(project.user_id)) for project in pending_invitations]
+
+    return render_template('dashboard.html', projects=projects, shared_projects=shared_projects, pending_invitations=pending_invitations_with_owners)
+
+# Accept project invitation
+@app.route('/accept_invitation/<int:project_id>', methods=['POST'])
+@login_required
+def accept_invitation(project_id):
+    project = Project.query.get_or_404(project_id)
+    if current_user in project.shared_users:
+        stmt = project_user.update().where(
+            project_user.c.project_id == project_id,
+            project_user.c.user_id == current_user.id
+        ).values(status='accepted')
+        db.session.execute(stmt)
+        db.session.commit()
+        flash('Project invitation accepted.', 'success')
+    return redirect(url_for('dashboard'))
+
+# Decline project invitation
+@app.route('/decline_invitation/<int:project_id>', methods=['POST'])
+@login_required
+def decline_invitation(project_id):
+    project = Project.query.get_or_404(project_id)
+    if current_user in project.shared_users:
+        stmt = project_user.delete().where(
+            project_user.c.project_id == project_id,
+            project_user.c.user_id == current_user.id
+        )
+        db.session.execute(stmt)
+        db.session.commit()
+        flash('Project invitation declined.', 'info')
+    return redirect(url_for('dashboard'))
 
 # Edit
 @app.route('/edit_project/<int:project_id>', methods=['GET', 'POST'])
@@ -298,15 +347,20 @@ def edit_project(project_id):
 def delete_project(project_id):
     project = Project.query.get_or_404(project_id)
 
-    if project.user_id != current_user.id:
+    if current_user not in project.shared_users and project.user_id != current_user.id:
         flash('You are not authorized to delete this project.', 'danger')
         return redirect(url_for('dashboard'))
 
-    db.session.delete(project)
-    db.session.commit()
-    flash('Project deleted successfully!', 'success')
-    return redirect(url_for('dashboard'))
+    if project.user_id == current_user.id:
+        # If the current user is the owner, remove the project for all users
+        db.session.delete(project)
+    else:
+        # If the current user is a shared user, just remove their access
+        project.shared_users.remove(current_user)
 
+    db.session.commit()
+    flash('Project access removed successfully!', 'success')
+    return redirect(url_for('dashboard'))
 
 
 ################## Routes for Manage Market Book ####################
@@ -316,7 +370,7 @@ def delete_project(project_id):
 @login_required
 def manage_market_book(project_id):
     project = Project.query.get_or_404(project_id)
-    if project.user_id != current_user.id:
+    if project.user_id != current_user.id and current_user not in project.shared_users:
         flash('You are not authorized to manage this project.', 'danger')
         return redirect(url_for('dashboard'))
 
@@ -347,7 +401,7 @@ def manage_market_book(project_id):
 @login_required
 def value_drivers(project_id):
     project = Project.query.get_or_404(project_id)
-    if project.user_id != current_user.id:
+    if project.user_id != current_user.id and current_user not in project.shared_users:
         flash('You are not authorized to manage this project.', 'danger')
         return redirect(url_for('dashboard'))
 
@@ -419,7 +473,7 @@ def value_drivers(project_id):
 @login_required
 def compare_value_drivers(project_id):
     project = Project.query.get_or_404(project_id)
-    if project.user_id != current_user.id:
+    if project.user_id != current_user.id and current_user not in project.shared_users:
         flash('You are not authorized to manage this project.', 'danger')
         return redirect(url_for('dashboard'))
 
@@ -498,7 +552,7 @@ def compare_value_drivers(project_id):
 @login_required
 def comparison_results(project_id):
     project = Project.query.get_or_404(project_id)
-    if project.user_id != current_user.id:
+    if project.user_id != current_user.id and current_user not in project.shared_users:
         flash('You are not authorized to manage this project.', 'danger')
         return redirect(url_for('dashboard'))
     value_drivers = ValueDriver.query.filter_by(project_id=project_id).order_by(ValueDriver.weighting.desc()).all() #Order by weighting
@@ -530,7 +584,7 @@ def comparison_results(project_id):
 @login_required
 def product_comparison(project_id):
     project = Project.query.get_or_404(project_id)
-    if project.user_id != current_user.id:
+    if project.user_id != current_user.id and current_user not in project.shared_users:
         flash('You are not authorized to manage this project.', 'danger')
         return redirect(url_for('dashboard'))
 
@@ -591,7 +645,7 @@ def product_comparison(project_id):
 @login_required
 def edit_product(project_id, product_id_to_edit):
     project = Project.query.get_or_404(project_id)
-    if project.user_id != current_user.id:
+    if project.user_id != current_user.id and current_user not in project.shared_users:
         flash('You are not authorized to manage this project.', 'danger')
         return redirect(url_for('dashboard'))
 
@@ -640,7 +694,7 @@ def edit_product(project_id, product_id_to_edit):
 @login_required
 def delete_product(project_id, product_id_to_delete):
     project = Project.query.get_or_404(project_id)
-    if project.user_id != current_user.id:
+    if project.user_id != current_user.id and current_user not in project.shared_users:
         flash('You are not authorized to manage this project.', 'danger')
         return redirect(url_for('dashboard'))
 
@@ -673,7 +727,7 @@ def delete_product(project_id, product_id_to_delete):
 @login_required
 def rate_product(project_id, product_id_to_rate):
     project = Project.query.get_or_404(project_id)
-    if project.user_id != current_user.id:
+    if project.user_id != current_user.id and current_user not in project.shared_users:
         flash('You are not authorized to manage this project.', 'danger')
         return redirect(url_for('dashboard'))
 
@@ -743,7 +797,7 @@ def generate_colors(num_colors):
 @login_required
 def market_map(project_id):
     project = Project.query.get_or_404(project_id)
-    if project.user_id != current_user.id:
+    if project.user_id != current_user.id and current_user not in project.shared_users:
         flash('You are not authorized to manage this project.', 'danger')
         return redirect(url_for('dashboard'))
 
@@ -810,7 +864,7 @@ def market_map(project_id):
 @login_required
 def edit_comment(project_id, comment_id):
     comment = Comment.query.get_or_404(comment_id)
-    if comment.user_id != current_user.id:
+    if comment.user_id != current_user.id and current_user not in comment.project.shared_users:
         flash('You are not authorized to edit this comment.', 'danger')
         return redirect(url_for('market_map', project_id=project_id))
 
@@ -823,7 +877,7 @@ def edit_comment(project_id, comment_id):
 @login_required
 def delete_comment(project_id, comment_id):
     comment = Comment.query.get_or_404(comment_id)
-    if comment.user_id != current_user.id:
+    if comment.user_id != current_user.id and current_user not in comment.project.shared_users:
         flash('You are not authorized to delete this comment.', 'danger')
         return redirect(url_for('market_map', project_id=project_id))
 
@@ -836,7 +890,7 @@ def delete_comment(project_id, comment_id):
 @login_required
 def duplicate_product(project_id, product_id_to_duplicate):
     project = Project.query.get_or_404(project_id)
-    if project.user_id != current_user.id:
+    if project.user_id != current_user.id and current_user not in project.shared_users:
         flash('You are not authorized to manage this project.', 'danger')
         return redirect(url_for('dashboard'))
 
@@ -871,6 +925,31 @@ def duplicate_product(project_id, product_id_to_duplicate):
     db.session.commit()
     flash('Product duplicated successfully!', 'success')
     return redirect(url_for('product_comparison', project_id=project_id))
+
+@app.route('/share_project/<int:project_id>', methods=['POST'])
+@login_required
+def share_project(project_id):
+    project = Project.query.get_or_404(project_id)
+    if project.user_id != current_user.id and current_user not in project.shared_users:
+        flash('You are not authorized to share this project.', 'danger')
+        return redirect(url_for('dashboard'))
+
+    email = request.form.get('email')
+    user_to_share = User.query.filter_by(email=email).first()
+
+    if user_to_share:
+        # Check if the user already has access to the project
+        if user_to_share in project.shared_users:
+            flash('This user already has access to the project.', 'warning')
+        else:
+            # Grant access to the project
+            project.shared_users.append(user_to_share)
+            db.session.commit()
+            flash('Project successfully shared!', 'success')
+    else:
+        flash('Email address not found.', 'danger')
+
+    return redirect(url_for('dashboard'))
 
 ####################################Initiate App ############################################
 
