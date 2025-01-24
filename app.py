@@ -1005,36 +1005,48 @@ def remove_access(project_id, user_id):
 @login_required
 def settings():
     if request.method == 'POST':
-        username = request.form.get('username')
-        current_password = request.form.get('current_password')
-        new_password = request.form.get('new_password')
-        confirm_new_password = request.form.get('confirm_new_password')
-        profile_image = request.files.get('profile_image')
-        role = request.form.get('role')
+        if 'update_account' in request.form:
+            username = request.form.get('username')
+            profile_image = request.files.get('profile_image')
+            role = request.form.get('role')
 
-        if username:
-            current_user.username = username
+            if username:
+                current_user.username = username
 
-        if current_password and new_password and confirm_new_password:
-            if not current_user.check_password(current_password):
-                flash('Current password is incorrect.', 'danger')
+            if profile_image and allowed_file(profile_image.filename):
+                filename = secure_filename(profile_image.filename)
+                profile_image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                current_user.profile_image = filename
+
+            if role:
+                current_user.role = role
+
+            db.session.commit()
+            flash('Account updated successfully!', 'success')
+            return redirect(url_for('settings'))
+
+        elif 'reset_password' in request.form:
+            current_password = request.form.get('current_password')
+            new_password = request.form.get('new_password')
+            confirm_new_password = request.form.get('confirm_new_password')
+
+            if current_password and new_password and confirm_new_password:
+                if not current_user.check_password(current_password):
+                    flash('Current password is incorrect.', 'danger')
+                    return redirect(url_for('settings'))
+                if new_password != confirm_new_password:
+                    flash('New passwords do not match.', 'danger')
+                    return redirect(url_for('settings'))
+                current_user.set_password(new_password)
+                db.session.commit()
+                flash('Password reset successfully!', 'success')
                 return redirect(url_for('settings'))
-            if new_password != confirm_new_password:
-                flash('New passwords do not match.', 'danger')
-                return redirect(url_for('settings'))
-            current_user.set_password(new_password)
 
-        if profile_image and allowed_file(profile_image.filename):
-            filename = secure_filename(profile_image.filename)
-            profile_image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            current_user.profile_image = filename
-
-        if role:
-            current_user.role = role
-
-        db.session.commit()
-        flash('Profile updated successfully!', 'success')
-        return redirect(url_for('settings'))
+        elif 'delete_account' in request.form:
+            db.session.delete(current_user)
+            db.session.commit()
+            flash('Account deleted successfully!', 'success')
+            return redirect(url_for('register'))
 
     return render_template('settings.html')
 

@@ -112,6 +112,7 @@
         <div>
             <ul class="navbar-nav">
                 {% if current_user.is_authenticated %}
+                   
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('settings') }}" title="Settings">
                             <i class="fas fa-cog"></i>
