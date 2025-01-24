@@ -91,6 +91,17 @@
             margin-top: 10px;
             text-align: center;
         }
+
+        .profile-image-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .profile-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+        }
     </style>
 </head>
 <body>
@@ -102,7 +113,25 @@
             <ul class="navbar-nav">
                 {% if current_user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                        <a class="nav-link" href="{{ url_for('settings') }}" title="Settings">
+                            <i class="fas fa-cog"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('logout') }}" title="Logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <div class="nav-link">
+                            <div class="profile-image-container">
+                                {% if current_user.profile_image %}
+                                    <img src="{{ url_for('static', filename='uploads/' + current_user.profile_image) }}" alt="Profile Image" class="profile-image">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='uploads/default_profile.png') }}" alt="Profile Image" class="profile-image">
+                                {% endif %}
+                            </div>
+                        </div>
                     </li>
                 {% else %}
                     <li class="nav-item">

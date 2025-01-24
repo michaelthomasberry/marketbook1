@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Manage Access{% endblock %}
+{% block content %}
+<h1>Manage Access for {{ project.name }}</h1>
+
+<form method="POST">
+    <div class="form-group">
+        <label for="email">Invite User by Email:</label>
+        <input type="email" class="form-control" id="email" name="email" placeholder="Enter email address" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Invite</button>
+</form>
+
+<h2 class="mt-4">Users with Access</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in shared_users %}
+        <tr>
+            <td>{{ user.username }}</td>
+            <td>{{ user.email }}</td>
+            <td>
+                <form method="POST" action="{{ url_for('remove_access', project_id=project.id, user_id=user.id) }}" style="display:inline;">
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to remove access for this user?')">Remove Access</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

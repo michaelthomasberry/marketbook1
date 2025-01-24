@@ -56,6 +56,8 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(20), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)  # Added email field
     password_hash = db.Column(db.String(128), nullable=False)
+    profile_image = db.Column(db.String(255), nullable=True)  # Add profile_image field
+    role = db.Column(db.String(50), nullable=False)  # Add role field
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -145,8 +147,9 @@ def register():
         email = request.form.get('email')
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
+        role = request.form.get('role')
 
-        if not username or not email or not password or not confirm_password:
+        if not username or not email or not password or not confirm_password or not role:
             flash('Please fill in all fields.', 'danger')
             return redirect(url_for('register'))
 
@@ -167,7 +170,7 @@ def register():
             flash('Invalid email format.', 'danger')
             return redirect(url_for('register'))
 
-        new_user = User(username=username, email=email) #Added email to user creation
+        new_user = User(username=username, email=email, role=role) #Added role to user creation
         new_user.set_password(password)
         db.session.add(new_user)
         db.session.commit()
@@ -950,6 +953,90 @@ def share_project(project_id):
         flash('Email address not found.', 'danger')
 
     return redirect(url_for('dashboard'))
+
+# Manage Access
+@app.route('/manage/<int:project_id>/access', methods=['GET', 'POST'])
+@login_required
+def manage_access(project_id):
+    project = Project.query.get_or_404(project_id)
+    if project.user_id != current_user.id:
+        flash('You are not authorized to manage access for this project.', 'danger')
+        return redirect(url_for('dashboard'))
+
+    if request.method == 'POST':
+        email = request.form.get('email')
+        user_to_share = User.query.filter_by(email=email).first()
+
+        if user_to_share:
+            if user_to_share in project.shared_users:
+                flash('This user already has access to the project.', 'warning')
+            else:
+                project.shared_users.append(user_to_share)
+                db.session.commit()
+                flash('User successfully invited!', 'success')
+        else:
+            flash('Email address not found.', 'danger')
+
+    shared_users = project.shared_users
+
+    return render_template('manage_access.html', project=project, shared_users=shared_users)
+
+@app.route('/manage/<int:project_id>/access/remove/<int:user_id>', methods=['POST'])
+@login_required
+def remove_access(project_id, user_id):
+    project = Project.query.get_or_404(project_id)
+    user_to_remove = User.query.get_or_404(user_id)
+
+    if project.user_id != current_user.id:
+        flash('You are not authorized to remove access for this project.', 'danger')
+        return redirect(url_for('dashboard'))
+
+    if user_to_remove in project.shared_users:
+        project.shared_users.remove(user_to_remove)
+        db.session.commit()
+        flash('User access removed successfully!', 'success')
+    else:
+        flash('User does not have access to this project.', 'danger')
+
+    return redirect(url_for('manage_access', project_id=project_id))
+
+# Settings
+@app.route('/settings', methods=['GET', 'POST'])
+@login_required
+def settings():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        current_password = request.form.get('current_password')
+        new_password = request.form.get('new_password')
+        confirm_new_password = request.form.get('confirm_new_password')
+        profile_image = request.files.get('profile_image')
+        role = request.form.get('role')
+
+        if username:
+            current_user.username = username
+
+        if current_password and new_password and confirm_new_password:
+            if not current_user.check_password(current_password):
+                flash('Current password is incorrect.', 'danger')
+                return redirect(url_for('settings'))
+            if new_password != confirm_new_password:
+                flash('New passwords do not match.', 'danger')
+                return redirect(url_for('settings'))
+            current_user.set_password(new_password)
+
+        if profile_image and allowed_file(profile_image.filename):
+            filename = secure_filename(profile_image.filename)
+            profile_image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            current_user.profile_image = filename
+
+        if role:
+            current_user.role = role
+
+        db.session.commit()
+        flash('Profile updated successfully!', 'success')
+        return redirect(url_for('settings'))
+
+    return render_template('settings.html')
 
 ####################################Initiate App ############################################
 
