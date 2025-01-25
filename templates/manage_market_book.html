@@ -1,14 +1,14 @@
 {% extends 'base.html' %}
 {% block title %}Manage Market Book{% endblock %}
 {% block content %}
-<h1>Map the Market for {{ project.name }} in three simple steps...</h1>
+<h1 class="text-center">Map the Market for {{ project.name }} in three simple steps...</h1>
 
 <div class="row">
-    <div class="col-md-4">
-        <div class="card h-100 shadow border-primary"> {# Added border-primary #}
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100 shadow border-primary">
             <div class="card-body d-flex flex-column">
                 <div class="text-center mb-3">
-                    <span class="step-number">1</span> {# Step number directly in span #}
+                    <span class="step-number">1</span>
                     <i class="fas fa-list-ol fa-3x text-primary"></i>
                 </div>
                 <h5 class="card-title text-center">Create Value Drivers</h5>
@@ -17,11 +17,11 @@
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card h-100 shadow border-primary"> {# Added border-primary #}
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100 shadow border-primary">
             <div class="card-body d-flex flex-column">
                 <div class="text-center mb-3">
-                    <span class="step-number">2</span> {# Step number directly in span #}
+                    <span class="step-number">2</span>
                     <i class="fas fa-chart-bar fa-3x text-primary"></i>
                 </div>
                 <h5 class="card-title text-center">Product/Service Comparison</h5>
@@ -30,11 +30,11 @@
             </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="card h-100 shadow border-primary"> {# Added border-primary #}
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card h-100 shadow border-primary">
             <div class="card-body d-flex flex-column">
                 <div class="text-center mb-3">
-                    <span class="step-number">3</span> {# Step number directly in span #}
+                    <span class="step-number">3</span>
                     <i class="fas fa-map-marked-alt fa-3x text-primary"></i>
                 </div>
                 <h5 class="card-title text-center">Market Map</h5>
@@ -54,14 +54,14 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 40px; /* Adjust size as needed */
+    width: 40px;
     height: 40px;
     font-size: 1.2em;
     font-weight: bold;
-    border-radius: 50%; /* Make it a circle */
-    background-color: #4169E1; /* Use your primary color */
+    border-radius: 50%;
+    background-color: #4169E1;
     color: white;
-    margin-right: 10px; /* Space between number and icon */
+    margin-right: 10px;
 }
 </style>
 {% endblock %}
