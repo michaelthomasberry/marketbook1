@@ -15,6 +15,7 @@
 <table class="table table-striped">
     <thead>
         <tr>
+            <th>Profile Image</th>
             <th>Username</th>
             <th>Email</th>
             <th>Actions</th>
@@ -23,6 +24,7 @@
     <tbody>
         {% for user in shared_users %}
         <tr>
+            <td><img src="{{ user.profile_image_url }}" alt="{{ user.username }}'s profile image" class="img-thumbnail" style="width: 50px; height: 50px;"></td>
             <td>{{ user.username }}</td>
             <td>{{ user.email }}</td>
             <td>

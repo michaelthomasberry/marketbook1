@@ -65,6 +65,12 @@ class User(db.Model, UserMixin):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    @property
+    def profile_image_url(self):
+        if self.profile_image:
+            return url_for('static', filename='uploads/' + self.profile_image)
+        return url_for('static', filename='uploads/default_profile.png')  # Default profile image
+
 #Project
 class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -532,7 +538,7 @@ def compare_value_drivers(project_id):
 
         # Normalize weights to 100%
         total_weight = sum(weights)
-        if total_weight > 0:
+        if (total_weight > 0):
             normalized_weights = [(w / total_weight) * 100 for w in weights]
         else:
             normalized_weights = [100 / num_drivers] * num_drivers
@@ -955,29 +961,21 @@ def share_project(project_id):
     return redirect(url_for('dashboard'))
 
 # Manage Access
-@app.route('/manage/<int:project_id>/access', methods=['GET', 'POST'])
-@login_required
+@app.route('/manage_access/<int:project_id>', methods=['GET', 'POST'])
 def manage_access(project_id):
     project = Project.query.get_or_404(project_id)
-    if project.user_id != current_user.id:
-        flash('You are not authorized to manage access for this project.', 'danger')
-        return redirect(url_for('dashboard'))
+    shared_users = project.shared_users  # Change 'users' to 'shared_users'
 
     if request.method == 'POST':
         email = request.form.get('email')
-        user_to_share = User.query.filter_by(email=email).first()
-
-        if user_to_share:
-            if user_to_share in project.shared_users:
-                flash('This user already has access to the project.', 'warning')
-            else:
-                project.shared_users.append(user_to_share)
-                db.session.commit()
-                flash('User successfully invited!', 'success')
+        user = User.query.filter_by(email=email).first()
+        if user:
+            project.shared_users.append(user)  # Change 'users' to 'shared_users'
+            db.session.commit()
+            flash('User has been granted access.', 'success')
         else:
-            flash('Email address not found.', 'danger')
-
-    shared_users = project.shared_users
+            flash('User not found.', 'danger')
+        return redirect(url_for('manage_access', project_id=project_id))
 
     return render_template('manage_access.html', project=project, shared_users=shared_users)
 
