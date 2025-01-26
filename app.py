@@ -161,6 +161,14 @@ class Reply(db.Model):
     user = db.relationship('User', backref=db.backref('replies', lazy=True))
     comment = db.relationship('Comment', backref=db.backref('replies', lazy=True))
 
+# Rating Note Model
+class RatingNote(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    rating_id = db.Column(db.Integer, db.ForeignKey('rating.id'), nullable=False)
+    note = db.Column(db.Text, nullable=True)
+
+    rating = db.relationship('Rating', backref=db.backref('note', uselist=False))
+
 ############################## Routes  #######################################################################
 ###########Routes For Logging a user in ##############
 
@@ -767,9 +775,10 @@ def rate_product(project_id, product_id_to_rate):
 
     value_drivers = ValueDriver.query.filter_by(project_id=project_id).all()
 
-    # Get existing ratings for this product
+    # Get existing ratings and notes for this product
     existing_ratings = Rating.query.filter_by(product_id=product_id_to_rate).all()
     ratings_dict = {rating.value_driver_id: rating.score for rating in existing_ratings}
+    notes_dict = {rating.value_driver_id: rating.note.note if rating.note else '' for rating in existing_ratings}
 
     if request.method == 'POST':
         all_ratings_valid = True
@@ -777,6 +786,7 @@ def rate_product(project_id, product_id_to_rate):
         for vd in value_drivers:
             rating_name = f'rating_{vd.id}'
             rating_value = request.form.get(rating_name)
+            note_value = request.form.get(f'note_{vd.id}')
 
             try:
                 rating = int(rating_value)
@@ -792,6 +802,7 @@ def rate_product(project_id, product_id_to_rate):
         if all_ratings_valid:
             for vd in value_drivers:
                 rating_value = int(request.form.get(f'rating_{vd.id}'))
+                note_value = request.form.get(f'note_{vd.id}')
 
                 existing_rating = Rating.query.filter_by(
                     product_id=product_id_to_rate, value_driver_id=vd.id
@@ -800,6 +811,14 @@ def rate_product(project_id, product_id_to_rate):
                 if existing_rating:
                     existing_rating.score = rating_value
                     existing_rating.date_rated = datetime.utcnow()
+                    if existing_rating.note:
+                        existing_rating.note.note = note_value
+                    else:
+                        new_note = RatingNote(
+                            rating_id=existing_rating.id,
+                            note=note_value
+                        )
+                        db.session.add(new_note)
                 else:
                     new_rating = Rating(
                         product_id=product_id_to_rate,
@@ -807,12 +826,31 @@ def rate_product(project_id, product_id_to_rate):
                         score=rating_value
                     )
                     db.session.add(new_rating)
+                    db.session.flush()  # Ensure new_rating.id is available
+                    new_note = RatingNote(
+                        rating_id=new_rating.id,
+                        note=note_value
+                    )
+                    db.session.add(new_note)
 
             db.session.commit()
-            flash('Ratings submitted successfully!', 'success')
+            flash('Ratings and notes submitted successfully!', 'success')
             return redirect(url_for('product_comparison', project_id=project_id))
 
-    return render_template('rate_product.html', project=project, product=product_to_rate, value_drivers=value_drivers, ratings=ratings_dict)
+    return render_template('rate_product.html', project=project, product=product_to_rate, value_drivers=value_drivers, ratings=ratings_dict, notes=notes_dict)
+
+@app.route('/manage/<int:project_id>/value_driver/<int:value_driver_id>/edit_scoring_guidance', methods=['POST'])
+@login_required
+def edit_scoring_guidance(project_id, value_driver_id):
+    value_driver = ValueDriver.query.get_or_404(value_driver_id)
+    if value_driver.project_id != project_id:
+        flash('Value driver not found in this project.', 'danger')
+        return redirect(url_for('rate_product', project_id=project_id, product_id_to_rate=request.args.get('product_id_to_rate')))
+
+    value_driver.measured_by = request.form.get('measured_by')
+    db.session.commit()
+    flash('Scoring guidance updated successfully!', 'success')
+    return redirect(url_for('rate_product', project_id=project_id, product_id_to_rate=request.args.get('product_id_to_rate')))
 
 ######################### View graphs  ##################################
 def generate_colors(num_colors):
