@@ -27,27 +27,32 @@
         <div class="col-md-9">
             {% if scatter_data %}
                 <h2>Market Map</h2>
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" role="switch" id="toggleLabels">
-                    <label class="form-check-label" for="toggleLabels">Show Product Labels</label>
-                </div>
-                <div class="form-group">
-                    <label for="brandFilter">Filter by Brand:</label>
-                    <select class="form-control" id="brandFilter" multiple>
-                        <option value="all" selected>All Brands</option>
-                        {% for brand in brand_color_map.keys() %}
-                            <option value="{{ brand }}">{{ brand }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="productFilter">Filter by Product:</label>
-                    <select class="form-control" id="productFilter" multiple>
-                        <option value="all" selected>All Products</option>
-                        {% for product in product_names %}
-                            <option value="{{ product }}">{{ product }}</option>
-                        {% endfor %}
-                    </select>
+                <button class="btn btn-secondary mb-3" type="button" data-toggle="collapse" data-target="#filterOptions" aria-expanded="false" aria-controls="filterOptions">
+                    <i class="fas fa-filter"></i> Filter Market Map
+                </button>
+                <div class="collapse" id="filterOptions">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" id="toggleLabels" checked>
+                        <label class="form-check-label" for="toggleLabels">Show Product Labels</label>
+                    </div>
+                    <div class="form-group">
+                        <label for="brandFilter">Filter by Brand:</label>
+                        <select class="form-control" id="brandFilter" multiple>
+                            <option value="all" selected>All Brands</option>
+                            {% for brand in brand_color_map.keys() %}
+                                <option value="{{ brand }}">{{ brand }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="productFilter">Filter by Product:</label>
+                        <select class="form-control" id="productFilter" multiple>
+                            <option value="all" selected>All Products</option>
+                            {% for product in product_names %}
+                                <option value="{{ product }}">{{ product }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
                 <div style="height: 500px;">
                     <canvas id="marketChart"></canvas>
