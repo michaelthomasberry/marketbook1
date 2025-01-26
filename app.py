@@ -141,6 +141,26 @@ class ComparisonResult(db.Model):
     value_driver_b_id = db.Column(db.Integer, db.ForeignKey('value_driver.id'), nullable=False)
     winner_id = db.Column(db.Integer, db.ForeignKey('value_driver.id'), nullable=False)
 
+# Like Model
+class Like(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    comment_id = db.Column(db.Integer, db.ForeignKey('comment.id'), nullable=False)
+
+    user = db.relationship('User', backref=db.backref('likes', lazy=True))
+    comment = db.relationship('Comment', backref=db.backref('likes', lazy=True))
+
+# Reply Model
+class Reply(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    note = db.Column(db.Text, nullable=False)
+    date = db.Column(db.DateTime, default=datetime.utcnow)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    comment_id = db.Column(db.Integer, db.ForeignKey('comment.id'), nullable=False)
+
+    user = db.relationship('User', backref=db.backref('replies', lazy=True))
+    comment = db.relationship('Comment', backref=db.backref('replies', lazy=True))
+
 ############################## Routes  #######################################################################
 ###########Routes For Logging a user in ##############
 
@@ -893,6 +913,70 @@ def delete_comment(project_id, comment_id):
     db.session.delete(comment)
     db.session.commit()
     flash('Comment deleted successfully!', 'success')
+    return redirect(url_for('market_map', project_id=project_id))
+
+@app.route('/manage/<int:project_id>/comment/<int:comment_id>/like', methods=['POST'])
+@login_required
+def like_comment(project_id, comment_id):
+    comment = Comment.query.get_or_404(comment_id)
+    if current_user not in comment.project.shared_users and comment.project.user_id != current_user.id:
+        flash('You are not authorized to like this comment.', 'danger')
+        return redirect(url_for('market_map', project_id=project_id))
+
+    existing_like = Like.query.filter_by(user_id=current_user.id, comment_id=comment_id).first()
+    if existing_like:
+        flash('You have already liked this comment.', 'info')
+    else:
+        new_like = Like(user_id=current_user.id, comment_id=comment_id)
+        db.session.add(new_like)
+        db.session.commit()
+        flash('Comment liked successfully!', 'success')
+
+    return redirect(url_for('market_map', project_id=project_id))
+
+@app.route('/manage/<int:project_id>/comment/<int:comment_id>/reply', methods=['POST'])
+@login_required
+def reply_comment(project_id, comment_id):
+    comment = Comment.query.get_or_404(comment_id)
+    if current_user not in comment.project.shared_users and comment.project.user_id != current_user.id:
+        flash('You are not authorized to reply to this comment.', 'danger')
+        return redirect(url_for('market_map', project_id=project_id))
+
+    note = request.form.get('note')
+    if note:
+        new_reply = Reply(note=note, user_id=current_user.id, comment_id=comment_id)
+        db.session.add(new_reply)
+        db.session.commit()
+        flash('Reply added successfully!', 'success')
+    else:
+        flash('Reply cannot be empty.', 'danger')
+
+    return redirect(url_for('market_map', project_id=project_id))
+
+@app.route('/manage/<int:project_id>/reply/<int:reply_id>/edit', methods=['POST'])
+@login_required
+def edit_reply(project_id, reply_id):
+    reply = Reply.query.get_or_404(reply_id)
+    if reply.user_id != current_user.id and current_user not in reply.comment.project.shared_users:
+        flash('You are not authorized to edit this reply.', 'danger')
+        return redirect(url_for('market_map', project_id=project_id))
+
+    reply.note = request.form.get('note')
+    db.session.commit()
+    flash('Reply updated successfully!', 'success')
+    return redirect(url_for('market_map', project_id=project_id))
+
+@app.route('/manage/<int:project_id>/reply/<int:reply_id>/delete', methods=['POST'])
+@login_required
+def delete_reply(project_id, reply_id):
+    reply = Reply.query.get_or_404(reply_id)
+    if reply.user_id != current_user.id and current_user not in reply.comment.project.shared_users:
+        flash('You are not authorized to delete this reply.', 'danger')
+        return redirect(url_for('market_map', project_id=project_id))
+
+    db.session.delete(reply)
+    db.session.commit()
+    flash('Reply deleted successfully!', 'success')
     return redirect(url_for('market_map', project_id=project_id))
 
 @app.route('/manage/<int:project_id>/product/<int:product_id_to_duplicate>/duplicate', methods=['POST'])
