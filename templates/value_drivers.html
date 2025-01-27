@@ -13,18 +13,13 @@
         <div class="card-body">
             {% if value_drivers %}
                 <div class="row">
-                    {% for vd in value_drivers %}
+                    {% for vd in value_drivers|sort(attribute='weighting', reverse=True) %}
                     <div class="col-md-4">
                         <div class="card mb-4 shadow-sm">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ vd.value_driver }}</h5>
-                                <p class="card-text">Importance Weighting %: {{ vd.weighting|round(1) }}</p>
-                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#scoringModal{{ vd.id }}">
-                                    Scoring Guidance
-                                </button>
-                                <div class="dropdown mt-2">
-                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton{{ vd.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        Actions
+                            <div class="card-body position-relative">
+                                <div class="dropdown position-absolute top-0 end-0 m-2">
+                                    <button class="btn btn-sm btn-outline-secondary" type="button" id="dropdownMenuButton{{ vd.id }}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        <i class="fas fa-ellipsis-h"></i>
                                     </button>
                                     <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton{{ vd.id }}">
                                         <button type="button" class="dropdown-item" data-bs-toggle="modal" data-bs-target="#editModal{{ vd.id }}" title="Edit"><i class="fas fa-pencil-alt"></i> Edit</button>
@@ -34,6 +29,13 @@
                                         </form>
                                     </div>
                                 </div>
+                                <h5 class="card-title">{{ vd.value_driver }} <i class="fas fa-heart text-danger"></i></h5>
+                                <p class="card-text">
+                                    <i class="fas fa-weight-hanging"></i> Importance Weighting %: {{ vd.weighting|round(1) }}
+                                </p></p>
+                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#scoringModal{{ vd.id }}">
+                                    <i class="fas fa-info-circle"></i> Scoring Guidance
+                                </button>
                             </div>
                         </div>
                     </div>
