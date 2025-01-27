@@ -3,7 +3,42 @@
 {% block content %}
 <h1>Comparison Results for {{ project.name }}</h1>
 
-<img src="data:image/png;base64,{{ plot_url }}" alt="Comparison Results Graph">
+<div class="chart-container" style="position: relative; height: 400px; width: 100%;">
+    <canvas id="comparisonResultsChart"></canvas>
+</div>
 
 <a href="{{ url_for('value_drivers', project_id=project.id) }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Value Drivers</a>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('comparisonResultsChart').getContext('2d');
+        const labels = {{ labels|tojson }};
+        const data = {{ weights|tojson }};
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Weighting (%)',
+                    data: data,
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                },
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    });
+</script>
 {% endblock %}

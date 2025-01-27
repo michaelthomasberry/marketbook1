@@ -205,39 +205,42 @@
             {% endif %}
             {% if bar_chart_data and product_names and value_driver_names %}
                 <h2>Value Drivers</h2>
-                <div class="row">
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label for="brandFilterBarCharts">Filter by Brand:</label>
-                            <select class="form-control" id="brandFilterBarCharts" multiple>
-                                <option value="all" selected>All Brands</option>
-                                {% for brand in brand_color_map.keys() %}
-                                    <option value="{{ brand }}">{{ brand }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="productFilterBarCharts">Filter by Product:</label>
-                            <select class="form-control" id="productFilterBarCharts" multiple>
-                                <option value="all" selected>All Products</option>
-                                {% for product in product_names %}
-                                    <option value="{{ product }}">{{ product }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                    </div>
-                    <div class="col-md-9">
-                        <div class="row justify-content-center">
-                            {% for vd_name in value_driver_names %}
-                                <div class="col-md-6 mb-4 border p-3">
-                                    <h3>{{ vd_name }}</h3>
-                                    <p>Value Weighting: {{ "%.1f"|format(value_drivers[loop.index0].weighting) }}%</p>
-                                    <p>Measured By: {{ value_drivers[loop.index0].measured_by }}</p>
-                                    <canvas id="barChart{{ loop.index }}"></canvas>
-                                </div>
-                            {% endfor %}
+                <button class="btn btn-secondary mb-3" type="button" data-toggle="collapse" data-target="#filterValueDrivers" aria-expanded="false" aria-controls="filterValueDrivers">
+                    <i class="fas fa-filter"></i> Filter Value Drivers
+                </button>
+                <div class="collapse" id="filterValueDrivers">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="brandFilterBarCharts">Filter by Brand:</label>
+                                <select class="form-control" id="brandFilterBarCharts" multiple>
+                                    <option value="all" selected>All Brands</option>
+                                    {% for brand in brand_color_map.keys() %}
+                                        <option value="{{ brand }}">{{ brand }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="productFilterBarCharts">Filter by Product:</label>
+                                <select class="form-control" id="productFilterBarCharts" multiple>
+                                    <option value="all" selected>All Products</option>
+                                    {% for product in product_names %}
+                                        <option value="{{ product }}">{{ product }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
                         </div>
                     </div>
+                </div>
+                <div class="row justify-content-center">
+                    {% for vd_name in value_driver_names %}
+                        <div class="col-md-6 mb-4 border p-3">
+                            <h3>{{ vd_name }}</h3>
+                            <p>Value Weighting: {{ "%.1f"|format(value_drivers[loop.index0].weighting) }}%</p>
+                            <p>Measured By: {{ value_drivers[loop.index0].measured_by }}</p>
+                            <canvas id="barChart{{ loop.index }}"></canvas>
+                        </div>
+                    {% endfor %}
                 </div>
 
                 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -354,10 +357,9 @@
     <h2>Comments</h2>
     <form method="POST" action="{{ url_for('market_map', project_id=project.id) }}">
         <div class="form-group">
-            <label for="note">Add a Comment:</label>
-            <textarea class="form-control" id="note" name="note" rows="3" required></textarea>
+            <textarea class="form-control" id="note" name="note" rows="3" placeholder="Share your thoughts" required></textarea>
         </div>
-        <button type="submit" class="btn btn-primary mt-2">Submit</button>
+        <button type="submit" class="btn btn-primary mt-2"><i class="fas fa-paper-plane"></i></button>
     </form>
 
     <h3 class="mt-4">Previous Comments</h3>
@@ -372,29 +374,34 @@
                                 <img src="{{ comment.user.profile_image_url }}" alt="{{ comment.user.username }}'s profile image" class="img-thumbnail" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px;">
                                 <strong>{{ comment.user.username }}</strong>
                             </div>
-                    
                             <p class="card-text"><small class="text-muted">{{ comment.date.strftime('%Y-%m-%d %H:%M:%S') }}</small></p>
                             <p class="card-text">{{ comment.note }}</p>
+                            <hr>
                             <form method="POST" action="{{ url_for('like_comment', project_id=project.id, comment_id=comment.id) }}" style="display:inline;">
-                                <button type="submit" class="btn btn-sm btn-outline-primary">
-                                    <i class="fas fa-thumbs-up"></i>
+                                <button type="submit" class="btn btn-sm" style="color: rgb(128, 128, 128); border: none;"></button>
+                                    <i class="fas fa-heart"></i>
                                 </button>
                             </form>
-                            <span class="ml-2">{{ comment.likes|length }} likes</span>
-                            <button class="btn btn-sm btn-outline-secondary" data-toggle="collapse" data-target="#replyForm{{ comment.id }}" aria-expanded="false" aria-controls="replyForm{{ comment.id }}">
-                                <i class="fas fa-reply"></i> Reply
+                            {% if comment.likes|length > 0 %}
+                                <span class="ml-2">{{ comment.likes|length }} </span>
+                            {% endif %}
+                            <button class="btn btn-sm" style="color: rgb(128, 128, 128); border: none;" data-toggle="collapse" data-target="#replyForm{{ comment.id }}" aria-expanded="false" aria-controls="replyForm{{ comment.id }}">
+                                <i class="fas fa-comment"></i>
                             </button>
+                            {% if comment.replies|length > 0 %}
+                                <span class="ml-2">{{ comment.replies|length }}</span>
+                            {% endif %}
                         </div>
                         <div class="dropdown">
                             <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton{{ comment.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                Actions
+                                <i class="fas fa-ellipsis-v"></i>
                             </button>
                             <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton{{ comment.id }}">
                                 <button type="button" class="dropdown-item" data-toggle="modal" data-target="#editCommentModal{{ comment.id }}">
-                                    <i class="fas fa-edit"></i> Edit
+                                    <i class="fas fa-edit"></i>
                                 </button>
                                 <form method="POST" action="{{ url_for('delete_comment', project_id=project.id, comment_id=comment.id) }}" style="display:inline;">
-                                    <button type="submit" class="dropdown-item" title="Delete" onclick="return confirm('Are you sure?')"><i class="fas fa-trash-alt"></i> Delete</button>
+                                    <button type="submit" class="dropdown-item" title="Delete" onclick="return confirm('Are you sure?')"><i class="fas fa-trash-alt"></i></button>
                                 </form>
                             </div>
                         </div>
@@ -405,7 +412,7 @@
                                 <label for="replyNote{{ comment.id }}">Reply:</label>
                                 <textarea class="form-control" id="replyNote{{ comment.id }}" name="note" rows="2" required></textarea>
                             </div>
-                            <button type="submit" class="btn btn-primary btn-sm">Submit Reply</button>
+                            <button type="submit" class="btn btn-primary btn-sm"><i class="fas fa-paper-plane"></i></button>
                         </form>
                     </div>
                     {% if comment.replies %}
@@ -425,14 +432,14 @@
                                             </div>
                                             <div class="dropdown">
                                                 <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton{{ reply.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                                    Actions
+                                                    <i class="fas fa-ellipsis-v"></i>
                                                 </button>
                                                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton{{ reply.id }}">
                                                     <button type="button" class="dropdown-item" data-toggle="modal" data-target="#editReplyModal{{ reply.id }}">
-                                                        <i class="fas fa-edit"></i> Edit
+                                                        <i class="fas fa-edit"></i>
                                                     </button>
                                                     <form method="POST" action="{{ url_for('delete_reply', project_id=project.id, reply_id=reply.id) }}" style="display:inline;">
-                                                        <button type="submit" class="dropdown-item" title="Delete" onclick="return confirm('Are you sure?')"><i class="fas fa-trash-alt"></i> Delete</button>
+                                                        <button type="submit" class="dropdown-item" title="Delete" onclick="return confirm('Are you sure?')"><i class="fas fa-trash-alt"></i></button>
                                                     </form>
                                                 </div>
                                             </div>
@@ -456,14 +463,14 @@
                                                         <label for="note">Reply:</label>
                                                         <textarea class="form-control" id="note" name="note" rows="3" required>{{ reply.note }}</textarea>
                                                     </div>
-                                                    <button type="submit" class="btn btn-primary">Save changes</button>
+                                                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i></button>
                                                 </form>
                                             </div>
                                             <div class="modal-footer">
                                                 <form method="POST" action="{{ url_for('delete_reply', project_id=project.id, reply_id=reply.id) }}">
-                                                    <button type="submit" class="btn btn-danger">Delete Reply</button>
+                                                    <button type="submit" class="btn btn-danger"><i class="fas fa-trash-alt"></i></button>
                                                 </form>
-                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                                <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fas fa-times"></i></button>
                                             </div>
                                         </div>
                                     </div>
@@ -491,14 +498,14 @@
                                 <label for="note">Comment:</label>
                                 <textarea class="form-control" id="note" name="note" rows="3" required>{{ comment.note }}</textarea>
                             </div>
-                            <button type="submit" class="btn btn-primary">Save changes</button>
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i></button>
                         </form>
                     </div>
                     <div class="modal-footer">
                         <form method="POST" action="{{ url_for('delete_comment', project_id=project.id, comment_id=comment.id) }}">
-                            <button type="submit" class="btn btn-danger">Delete Comment</button>
+                            <button type="submit" class="btn btn-danger"><i class="fas fa-trash-alt"></i></button>
                         </form>
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fas fa-times"></i></button>
                     </div>
                 </div>
             </div>

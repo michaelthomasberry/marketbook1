@@ -597,6 +597,10 @@ def comparison_results(project_id):
     labels = [vd.value_driver for vd in value_drivers]
     weights = [vd.weighting for vd in value_drivers]
 
+    # Ensure labels and weights are not None
+    labels = labels if labels else []
+    weights = weights if weights else []
+
     # Create the bar chart
     fig, ax = plt.subplots()
     ax.bar(labels, weights)
@@ -613,7 +617,7 @@ def comparison_results(project_id):
     # Encode the image to base64
     plot_url = base64.b64encode(img.getvalue()).decode()
 
-    return render_template('results.html', project=project, plot_url=plot_url)
+    return render_template('results.html', project=project, plot_url=plot_url, labels=labels, weights=weights)
 
 ###########################routes for managing comparing products ####
 # Product Comparison
