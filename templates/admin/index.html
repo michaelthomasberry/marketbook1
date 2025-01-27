@@ -1,0 +1,79 @@
+{% extends 'admin/master.html' %}
+{% block body %}
+<div class="container">
+    <h1 class="mt-4">Welcome to the Admin Dashboard, {{ user.username }}!</h1>
+    <p class="lead">Here you can manage users, projects, and other administrative tasks.</p>
+    <p>Total Users: {{ user_count }}</p>
+    <a href="{{ url_for('dashboard') }}" class="btn btn-primary mt-3">Go to Dashboard</a>
+
+    <h2 class="mt-5">User Roles Distribution</h2>
+    <div style="width: 300px; height: 300px; margin: auto;">
+        <canvas id="roleChart"></canvas>
+    </div>
+
+    <h2 class="mt-5">Number of Users</h2>
+    <div style="width: 300px; height: 300px; margin: auto;">
+        <canvas id="userCountChart"></canvas>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctxPie = document.getElementById('roleChart').getContext('2d');
+        const ctxBar = document.getElementById('userCountChart').getContext('2d');
+        const roleData = {{ role_data|tojson }};
+        const labels = Object.keys(roleData);
+        const data = Object.values(roleData);
+
+        new Chart(ctxPie, {
+            type: 'pie',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
+                    hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return labels[tooltipItem.dataIndex] + ': ' + data[tooltipItem.dataIndex];
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: ['Total Users'],
+                datasets: [{
+                    label: 'Users',
+                    data: [{{ user_count }}],
+                    backgroundColor: ['#36A2EB'],
+                    borderColor: ['#36A2EB'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

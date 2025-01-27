@@ -48,11 +48,11 @@
             <div class="form-group">
                 <label for="role">Role:</label>
                 <select class="form-control" id="role" name="role" required>
-                    <option value="Student/Entry-Level" {% if current_user.role == "Student/Entry-Level" %}selected{% endif %}>Student/Entry-Level</option>
-                    <option value="Specialist/Contributor" {% if current_user.role == "Specialist/Contributor" %}selected{% endif %}>Specialist/Contributor</option>
-                    <option value="Team Lead/Supervisor" {% if current_user.role == "Team Lead/Supervisor" %}selected{% endif %}>Team Lead/Supervisor</option>
-                    <option value="Manager/Head" {% if current_user.role == "Manager/Head" %}selected{% endif %}>Manager/Head</option>
-                    <option value="Director/Executive" {% if current_user.role == "Director/Executive" %}selected{% endif %}>Director/Executive</option>
+                    {% if current_user.role == "admin" %}
+                        <option value="admin" {% if current_user.role == "admin" %}selected{% endif %}>Admin</option>
+                    {% endif %}
+                    <option value="standard" {% if current_user.role == "standard" %}selected{% endif %}>Standard</option>
+                    <option value="premium" {% if current_user.role == "premium" %}selected{% endif %}>Premium</option>
                 </select>
             </div>
             <button type="submit" class="btn btn-primary">Update Account</button>

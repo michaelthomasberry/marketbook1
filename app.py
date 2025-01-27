@@ -15,6 +15,9 @@ import os
 from datetime import datetime #Import datetime for date handling
 from collections import defaultdict
 from flask_migrate import Migrate
+from flask_admin import Admin
+from flask_admin.contrib.sqla import ModelView
+from flask_admin import AdminIndexView, expose
 
 #################Configurations#####################
 app = Flask(__name__)
@@ -169,6 +172,38 @@ class RatingNote(db.Model):
 
     rating = db.relationship('Rating', backref=db.backref('note', uselist=False))
 
+class MyAdminIndexView(AdminIndexView):
+    @expose('/')
+    @login_required
+    def index(self):
+        if current_user.role != 'admin':
+            flash('You are not authorized to access the admin panel.', 'danger')
+            return redirect(url_for('dashboard'))
+        user_count = User.query.count()
+        roles = db.session.query(User.role, db.func.count(User.role)).group_by(User.role).all()
+        role_data = {role: count for role, count in roles}
+        return self.render('admin/index.html', user=current_user, user_count=user_count, role_data=role_data)
+
+class SecureModelView(ModelView):
+    def is_accessible(self):
+        return current_user.is_authenticated and current_user.role == 'admin'
+
+    def inaccessible_callback(self, name, **kwargs):
+        flash('You are not authorized to access this page.', 'danger')
+        return redirect(url_for('dashboard'))
+
+admin = Admin(app, index_view=MyAdminIndexView(), template_mode='bootstrap4')
+admin.add_view(SecureModelView(User, db.session))
+admin.add_view(SecureModelView(Project, db.session))
+admin.add_view(SecureModelView(ValueDriver, db.session))
+admin.add_view(SecureModelView(Product, db.session))
+admin.add_view(SecureModelView(Rating, db.session))
+admin.add_view(SecureModelView(Comment, db.session))
+admin.add_view(SecureModelView(Reply, db.session))
+admin.add_view(SecureModelView(Like, db.session))
+admin.add_view(SecureModelView(RatingNote, db.session))
+admin.add_view(SecureModelView(ComparisonResult, db.session))
+
 ############################## Routes  #######################################################################
 ###########Routes For Logging a user in ##############
 
@@ -183,7 +218,7 @@ def register():
         confirm_password = request.form.get('confirm_password')
         role = request.form.get('role')
 
-        if not username or not email or not password or not confirm_password or not role:
+        if not username or not email or not password or not confirm_password:
             flash('Please fill in all fields.', 'danger')
             return redirect(url_for('register'))
 
@@ -203,6 +238,12 @@ def register():
         if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
             flash('Invalid email format.', 'danger')
             return redirect(url_for('register'))
+
+        # Determine role
+        if User.query.count() == 0:
+            role = 'admin'
+        else:
+            role = 'standard'
 
         new_user = User(username=username, email=email, role=role) #Added role to user creation
         new_user.set_password(password)
