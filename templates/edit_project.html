@@ -3,8 +3,208 @@
 {% block content %}
 <h1>Edit Project</h1>
 <form method="POST">
-    <input type="text" name="name" value="{{ project.name }}" required class="form-control"><br>
-    <textarea name="description" class="form-control">{{ project.description }}</textarea><br>
+    <input type="text" name="name" value="{{ project.name }}" required class="form-control mb-2">
+    <input type="text" name="category" value="{{ project.category }}" required class="form-control mb-2">
+    <input type="text" name="target_customer" value="{{ project.target_customer }}" required class="form-control mb-2">
+    <select name="country" class="form-control mb-2" required>
+        <option value="" disabled>Select Country</option>
+        <option value="Afghanistan" {% if project.country == "Afghanistan" %}selected{% endif %}>Afghanistan</option>
+        <option value="Albania" {% if project.country == "Albania" %}selected{% endif %}>Albania</option>
+        <option value="Algeria" {% if project.country == "Algeria" %}selected{% endif %}>Algeria</option>
+        <option value="Andorra" {% if project.country == "Andorra" %}selected{% endif %}>Andorra</option>
+        <option value="Angola" {% if project.country == "Angola" %}selected{% endif %}>Angola</option>
+        <option value="Antigua and Barbuda" {% if project.country == "Antigua and Barbuda" %}selected{% endif %}>Antigua and Barbuda</option>
+        <option value="Argentina" {% if project.country == "Argentina" %}selected{% endif %}>Argentina</option>
+        <option value="Armenia" {% if project.country == "Armenia" %}selected{% endif %}>Armenia</option>
+        <option value="Australia" {% if project.country == "Australia" %}selected{% endif %}>Australia</option>
+        <option value="Austria" {% if project.country == "Austria" %}selected{% endif %}>Austria</option>
+        <option value="Azerbaijan" {% if project.country == "Azerbaijan" %}selected{% endif %}>Azerbaijan</option>
+        <option value="Bahamas" {% if project.country == "Bahamas" %}selected{% endif %}>Bahamas</option>
+        <option value="Bahrain" {% if project.country == "Bahrain" %}selected{% endif %}>Bahrain</option>
+        <option value="Bangladesh" {% if project.country == "Bangladesh" %}selected{% endif %}>Bangladesh</option>
+        <option value="Barbados" {% if project.country == "Barbados" %}selected{% endif %}>Barbados</option>
+        <option value="Belarus" {% if project.country == "Belarus" %}selected{% endif %}>Belarus</option>
+        <option value="Belgium" {% if project.country == "Belgium" %}selected{% endif %}>Belgium</option>
+        <option value="Belize" {% if project.country == "Belize" %}selected{% endif %}>Belize</option>
+        <option value="Benin" {% if project.country == "Benin" %}selected{% endif %}>Benin</option>
+        <option value="Bhutan" {% if project.country == "Bhutan" %}selected{% endif %}>Bhutan</option>
+        <option value="Bolivia" {% if project.country == "Bolivia" %}selected{% endif %}>Bolivia</option>
+        <option value="Bosnia and Herzegovina" {% if project.country == "Bosnia and Herzegovina" %}selected{% endif %}>Bosnia and Herzegovina</option>
+        <option value="Botswana" {% if project.country == "Botswana" %}selected{% endif %}>Botswana</option>
+        <option value="Brazil" {% if project.country == "Brazil" %}selected{% endif %}>Brazil</option>
+        <option value="Brunei" {% if project.country == "Brunei" %}selected{% endif %}>Brunei</option>
+        <option value="Bulgaria" {% if project.country == "Bulgaria" %}selected{% endif %}>Bulgaria</option>
+        <option value="Burkina Faso" {% if project.country == "Burkina Faso" %}selected{% endif %}>Burkina Faso</option>
+        <option value="Burundi" {% if project.country == "Burundi" %}selected{% endif %}>Burundi</option>
+        <option value="Cabo Verde" {% if project.country == "Cabo Verde" %}selected{% endif %}>Cabo Verde</option>
+        <option value="Cambodia" {% if project.country == "Cambodia" %}selected{% endif %}>Cambodia</option>
+        <option value="Cameroon" {% if project.country == "Cameroon" %}selected{% endif %}>Cameroon</option>
+        <option value="Canada" {% if project.country == "Canada" %}selected{% endif %}>Canada</option>
+        <option value="Central African Republic" {% if project.country == "Central African Republic" %}selected{% endif %}>Central African Republic</option>
+        <option value="Chad" {% if project.country == "Chad" %}selected{% endif %}>Chad</option>
+        <option value="Chile" {% if project.country == "Chile" %}selected{% endif %}>Chile</option>
+        <option value="China" {% if project.country == "China" %}selected{% endif %}>China</option>
+        <option value="Colombia" {% if project.country == "Colombia" %}selected{% endif %}>Colombia</option>
+        <option value="Comoros" {% if project.country == "Comoros" %}selected{% endif %}>Comoros</option>
+        <option value="Congo, Democratic Republic of the" {% if project.country == "Congo, Democratic Republic of the" %}selected{% endif %}>Congo, Democratic Republic of the</option>
+        <option value="Congo, Republic of the" {% if project.country == "Congo, Republic of the" %}selected{% endif %}>Congo, Republic of the</option>
+        <option value="Costa Rica" {% if project.country == "Costa Rica" %}selected{% endif %}>Costa Rica</option>
+        <option value="Croatia" {% if project.country == "Croatia" %}selected{% endif %}>Croatia</option>
+        <option value="Cuba" {% if project.country == "Cuba" %}selected{% endif %}>Cuba</option>
+        <option value="Cyprus" {% if project.country == "Cyprus" %}selected{% endif %}>Cyprus</option>
+        <option value="Czech Republic" {% if project.country == "Czech Republic" %}selected{% endif %}>Czech Republic</option>
+        <option value="Denmark" {% if project.country == "Denmark" %}selected{% endif %}>Denmark</option>
+        <option value="Djibouti" {% if project.country == "Djibouti" %}selected{% endif %}>Djibouti</option>
+        <option value="Dominica" {% if project.country == "Dominica" %}selected{% endif %}>Dominica</option>
+        <option value="Dominican Republic" {% if project.country == "Dominican Republic" %}selected{% endif %}>Dominican Republic</option>
+        <option value="Ecuador" {% if project.country == "Ecuador" %}selected{% endif %}>Ecuador</option>
+        <option value="Egypt" {% if project.country == "Egypt" %}selected{% endif %}>Egypt</option>
+        <option value="El Salvador" {% if project.country == "El Salvador" %}selected{% endif %}>El Salvador</option>
+        <option value="Equatorial Guinea" {% if project.country == "Equatorial Guinea" %}selected{% endif %}>Equatorial Guinea</option>
+        <option value="Eritrea" {% if project.country == "Eritrea" %}selected{% endif %}>Eritrea</option>
+        <option value="Estonia" {% if project.country == "Estonia" %}selected{% endif %}>Estonia</option>
+        <option value="Eswatini" {% if project.country == "Eswatini" %}selected{% endif %}>Eswatini</option>
+        <option value="Ethiopia" {% if project.country == "Ethiopia" %}selected{% endif %}>Ethiopia</option>
+        <option value="Fiji" {% if project.country == "Fiji" %}selected{% endif %}>Fiji</option>
+        <option value="Finland" {% if project.country == "Finland" %}selected{% endif %}>Finland</option>
+        <option value="France" {% if project.country == "France" %}selected{% endif %}>France</option>
+        <option value="Gabon" {% if project.country == "Gabon" %}selected{% endif %}>Gabon</option>
+        <option value="Gambia" {% if project.country == "Gambia" %}selected{% endif %}>Gambia</option>
+        <option value="Georgia" {% if project.country == "Georgia" %}selected{% endif %}>Georgia</option>
+        <option value="Germany" {% if project.country == "Germany" %}selected{% endif %}>Germany</option>
+        <option value="Ghana" {% if project.country == "Ghana" %}selected{% endif %}>Ghana</option>
+        <option value="Greece" {% if project.country == "Greece" %}selected{% endif %}>Greece</option>
+        <option value="Grenada" {% if project.country == "Grenada" %}selected{% endif %}>Grenada</option>
+        <option value="Guatemala" {% if project.country == "Guatemala" %}selected{% endif %}>Guatemala</option>
+        <option value="Guinea" {% if project.country == "Guinea" %}selected{% endif %}>Guinea</option>
+        <option value="Guinea-Bissau" {% if project.country == "Guinea-Bissau" %}selected{% endif %}>Guinea-Bissau</option>
+        <option value="Guyana" {% if project.country == "Guyana" %}selected{% endif %}>Guyana</option>
+        <option value="Haiti" {% if project.country == "Haiti" %}selected{% endif %}>Haiti</option>
+        <option value="Honduras" {% if project.country == "Honduras" %}selected{% endif %}>Honduras</option>
+        <option value="Hungary" {% if project.country == "Hungary" %}selected{% endif %}>Hungary</option>
+        <option value="Iceland" {% if project.country == "Iceland" %}selected{% endif %}>Iceland</option>
+        <option value="India" {% if project.country == "India" %}selected{% endif %}>India</option>
+        <option value="Indonesia" {% if project.country == "Indonesia" %}selected{% endif %}>Indonesia</option>
+        <option value="Iran" {% if project.country == "Iran" %}selected{% endif %}>Iran</option>
+        <option value="Iraq" {% if project.country == "Iraq" %}selected{% endif %}>Iraq</option>
+        <option value="Ireland" {% if project.country == "Ireland" %}selected{% endif %}>Ireland</option>
+        <option value="Israel" {% if project.country == "Israel" %}selected{% endif %}>Israel</option>
+        <option value="Italy" {% if project.country == "Italy" %}selected{% endif %}>Italy</option>
+        <option value="Jamaica" {% if project.country == "Jamaica" %}selected{% endif %}>Jamaica</option>
+        <option value="Japan" {% if project.country == "Japan" %}selected{% endif %}>Japan</option>
+        <option value="Jordan" {% if project.country == "Jordan" %}selected{% endif %}>Jordan</option>
+        <option value="Kazakhstan" {% if project.country == "Kazakhstan" %}selected{% endif %}>Kazakhstan</option>
+        <option value="Kenya" {% if project.country == "Kenya" %}selected{% endif %}>Kenya</option>
+        <option value="Kiribati" {% if project.country == "Kiribati" %}selected{% endif %}>Kiribati</option>
+        <option value="Korea, North" {% if project.country == "Korea, North" %}selected{% endif %}>Korea, North</option>
+        <option value="Korea, South" {% if project.country == "Korea, South" %}selected{% endif %}>Korea, South</option>
+        <option value="Kosovo" {% if project.country == "Kosovo" %}selected{% endif %}>Kosovo</option>
+        <option value="Kuwait" {% if project.country == "Kuwait" %}selected{% endif %}>Kuwait</option>
+        <option value="Kyrgyzstan" {% if project.country == "Kyrgyzstan" %}selected{% endif %}>Kyrgyzstan</option>
+        <option value="Laos" {% if project.country == "Laos" %}selected{% endif %}>Laos</option>
+        <option value="Latvia" {% if project.country == "Latvia" %}selected{% endif %}>Latvia</option>
+        <option value="Lebanon" {% if project.country == "Lebanon" %}selected{% endif %}>Lebanon</option>
+        <option value="Lesotho" {% if project.country == "Lesotho" %}selected{% endif %}>Lesotho</option>
+        <option value="Liberia" {% if project.country == "Liberia" %}selected{% endif %}>Liberia</option>
+        <option value="Libya" {% if project.country == "Libya" %}selected{% endif %}>Libya</option>
+        <option value="Liechtenstein" {% if project.country == "Liechtenstein" %}selected{% endif %}>Liechtenstein</option>
+        <option value="Lithuania" {% if project.country == "Lithuania" %}selected{% endif %}>Lithuania</option>
+        <option value="Luxembourg" {% if project.country == "Luxembourg" %}selected{% endif %}>Luxembourg</option>
+        <option value="Madagascar" {% if project.country == "Madagascar" %}selected{% endif %}>Madagascar</option>
+        <option value="Malawi" {% if project.country == "Malawi" %}selected{% endif %}>Malawi</option>
+        <option value="Malaysia" {% if project.country == "Malaysia" %}selected{% endif %}>Malaysia</option>
+        <option value="Maldives" {% if project.country == "Maldives" %}selected{% endif %}>Maldives</option>
+        <option value="Mali" {% if project.country == "Mali" %}selected{% endif %}>Mali</option>
+        <option value="Malta" {% if project.country == "Malta" %}selected{% endif %}>Malta</option>
+        <option value="Marshall Islands" {% if project.country == "Marshall Islands" %}selected{% endif %}>Marshall Islands</option>
+        <option value="Mauritania" {% if project.country == "Mauritania" %}selected{% endif %}>Mauritania</option>
+        <option value="Mauritius" {% if project.country == "Mauritius" %}selected{% endif %}>Mauritius</option>
+        <option value="Mexico" {% if project.country == "Mexico" %}selected{% endif %}>Mexico</option>
+        <option value="Micronesia" {% if project.country == "Micronesia" %}selected{% endif %}>Micronesia</option>
+        <option value="Moldova" {% if project.country == "Moldova" %}selected{% endif %}>Moldova</option>
+        <option value="Monaco" {% if project.country == "Monaco" %}selected{% endif %}>Monaco</option>
+        <option value="Mongolia" {% if project.country == "Mongolia" %}selected{% endif %}>Mongolia</option>
+        <option value="Montenegro" {% if project.country == "Montenegro" %}selected{% endif %}>Montenegro</option>
+        <option value="Morocco" {% if project.country == "Morocco" %}selected{% endif %}>Morocco</option>
+        <option value="Mozambique" {% if project.country == "Mozambique" %}selected{% endif %}>Mozambique</option>
+        <option value="Myanmar" {% if project.country == "Myanmar" %}selected{% endif %}>Myanmar</option>
+        <option value="Namibia" {% if project.country == "Namibia" %}selected{% endif %}>Namibia</option>
+        <option value="Nauru" {% if project.country == "Nauru" %}selected{% endif %}>Nauru</option>
+        <option value="Nepal" {% if project.country == "Nepal" %}selected{% endif %}>Nepal</option>
+        <option value="Netherlands" {% if project.country == "Netherlands" %}selected{% endif %}>Netherlands</option>
+        <option value="New Zealand" {% if project.country == "New Zealand" %}selected{% endif %}>New Zealand</option>
+        <option value="Nicaragua" {% if project.country == "Nicaragua" %}selected{% endif %}>Nicaragua</option>
+        <option value="Niger" {% if project.country == "Niger" %}selected{% endif %}>Niger</option>
+        <option value="Nigeria" {% if project.country == "Nigeria" %}selected{% endif %}>Nigeria</option>
+        <option value="North Macedonia" {% if project.country == "North Macedonia" %}selected{% endif %}>North Macedonia</option>
+        <option value="Norway" {% if project.country == "Norway" %}selected{% endif %}>Norway</option>
+        <option value="Oman" {% if project.country == "Oman" %}selected{% endif %}>Oman</option>
+        <option value="Pakistan" {% if project.country == "Pakistan" %}selected{% endif %}>Pakistan</option>
+        <option value="Palau" {% if project.country == "Palau" %}selected{% endif %}>Palau</option>
+        <option value="Palestine" {% if project.country == "Palestine" %}selected{% endif %}>Palestine</option>
+        <option value="Panama" {% if project.country == "Panama" %}selected{% endif %}>Panama</option>
+        <option value="Papua New Guinea" {% if project.country == "Papua New Guinea" %}selected{% endif %}>Papua New Guinea</option>
+        <option value="Paraguay" {% if project.country == "Paraguay" %}selected{% endif %}>Paraguay</option>
+        <option value="Peru" {% if project.country == "Peru" %}selected{% endif %}>Peru</option>
+        <option value="Philippines" {% if project.country == "Philippines" %}selected{% endif %}>Philippines</option>
+        <option value="Poland" {% if project.country == "Poland" %}selected{% endif %}>Poland</option>
+        <option value="Portugal" {% if project.country == "Portugal" %}selected{% endif %}>Portugal</option>
+        <option value="Qatar" {% if project.country == "Qatar" %}selected{% endif %}>Qatar</option>
+        <option value="Romania" {% if project.country == "Romania" %}selected{% endif %}>Romania</option>
+        <option value="Russia" {% if project.country == "Russia" %}selected{% endif %}>Russia</option>
+        <option value="Rwanda" {% if project.country == "Rwanda" %}selected{% endif %}>Rwanda</option>
+        <option value="Saint Kitts and Nevis" {% if project.country == "Saint Kitts and Nevis" %}selected{% endif %}>Saint Kitts and Nevis</option>
+        <option value="Saint Lucia" {% if project.country == "Saint Lucia" %}selected{% endif %}>Saint Lucia</option>
+        <option value="Saint Vincent and the Grenadines" {% if project.country == "Saint Vincent and the Grenadines" %}selected{% endif %}>Saint Vincent and the Grenadines</option>
+        <option value="Samoa" {% if project.country == "Samoa" %}selected{% endif %}>Samoa</option>
+        <option value="San Marino" {% if project.country == "San Marino" %}selected{% endif %}>San Marino</option>
+        <option value="Sao Tome and Principe" {% if project.country == "Sao Tome and Principe" %}selected{% endif %}>Sao Tome and Principe</option>
+        <option value="Saudi Arabia" {% if project.country == "Saudi Arabia" %}selected{% endif %}>Saudi Arabia</option>
+        <option value="Senegal" {% if project.country == "Senegal" %}selected{% endif %}>Senegal</option>
+        <option value="Serbia" {% if project.country == "Serbia" %}selected{% endif %}>Serbia</option>
+        <option value="Seychelles" {% if project.country == "Seychelles" %}selected{% endif %}>Seychelles</option>
+        <option value="Sierra Leone" {% if project.country == "Sierra Leone" %}selected{% endif %}>Sierra Leone</option>
+        <option value="Singapore" {% if project.country == "Singapore" %}selected{% endif %}>Singapore</option>
+        <option value="Slovakia" {% if project.country == "Slovakia" %}selected{% endif %}>Slovakia</option>
+        <option value="Slovenia" {% if project.country == "Slovenia" %}selected{% endif %}>Slovenia</option>
+        <option value="Solomon Islands" {% if project.country == "Solomon Islands" %}selected{% endif %}>Solomon Islands</option>
+        <option value="Somalia" {% if project.country == "Somalia" %}selected{% endif %}>Somalia</option>
+        <option value="South Africa" {% if project.country == "South Africa" %}selected{% endif %}>South Africa</option>
+        <option value="South Sudan" {% if project.country == "South Sudan" %}selected{% endif %}>South Sudan</option>
+        <option value="Spain" {% if project.country == "Spain" %}selected{% endif %}>Spain</option>
+        <option value="Sri Lanka" {% if project.country == "Sri Lanka" %}selected{% endif %}>Sri Lanka</option>
+        <option value="Sudan" {% if project.country == "Sudan" %}selected{% endif %}>Sudan</option>
+        <option value="Suriname" {% if project.country == "Suriname" %}selected{% endif %}>Suriname</option>
+        <option value="Sweden" {% if project.country == "Sweden" %}selected{% endif %}>Sweden</option>
+        <option value="Switzerland" {% if project.country == "Switzerland" %}selected{% endif %}>Switzerland</option>
+        <option value="Syria" {% if project.country == "Syria" %}selected{% endif %}>Syria</option>
+        <option value="Taiwan" {% if project.country == "Taiwan" %}selected{% endif %}>Taiwan</option>
+        <option value="Tajikistan" {% if project.country == "Tajikistan" %}selected{% endif %}>Tajikistan</option>
+        <option value="Tanzania" {% if project.country == "Tanzania" %}selected{% endif %}>Tanzania</option>
+        <option value="Thailand" {% if project.country == "Thailand" %}selected{% endif %}>Thailand</option>
+        <option value="Timor-Leste" {% if project.country == "Timor-Leste" %}selected{% endif %}>Timor-Leste</option>
+        <option value="Togo" {% if project.country == "Togo" %}selected{% endif %}>Togo</option>
+        <option value="Tonga" {% if project.country == "Tonga" %}selected{% endif %}>Tonga</option>
+        <option value="Trinidad and Tobago" {% if project.country == "Trinidad and Tobago" %}selected{% endif %}>Trinidad and Tobago</option>
+        <option value="Tunisia" {% if project.country == "Tunisia" %}selected{% endif %}>Tunisia</option>
+        <option value="Turkey" {% if project.country == "Turkey" %}selected{% endif %}>Turkey</option>
+        <option value="Turkmenistan" {% if project.country == "Turkmenistan" %}selected{% endif %}>Turkmenistan</option>
+        <option value="Tuvalu" {% if project.country == "Tuvalu" %}selected{% endif %}>Tuvalu</option>
+        <option value="Uganda" {% if project.country == "Uganda" %}selected{% endif %}>Uganda</option>
+        <option value="Ukraine" {% if project.country == "Ukraine" %}selected{% endif %}>Ukraine</option>
+        <option value="United Arab Emirates" {% if project.country == "United Arab Emirates" %}selected{% endif %}>United Arab Emirates</option>
+        <option value="United Kingdom" {% if project.country == "United Kingdom" %}selected{% endif %}>United Kingdom</option>
+        <option value="United States" {% if project.country == "United States" %}selected{% endif %}>United States</option>
+        <option value="Uruguay" {% if project.country == "Uruguay" %}selected{% endif %}>Uruguay</option>
+        <option value="Uzbekistan" {% if project.country == "Uzbekistan" %}selected{% endif %}>Uzbekistan</option>
+        <option value="Vanuatu" {% if project.country == "Vanuatu" %}selected{% endif %}>Vanuatu</option>
+        <option value="Vatican City" {% if project.country == "Vatican City" %}selected{% endif %}>Vatican City</option>
+        <option value="Venezuela" {% if project.country == "Venezuela" %}selected{% endif %}>Venezuela</option>
+        <option value="Vietnam" {% if project.country == "Vietnam" %}selected{% endif %}>Vietnam</option>
+        <option value="Yemen" {% if project.country == "Yemen" %}selected{% endif %}>Yemen</option>
+        <option value="Zambia" {% if project.country == "Zambia" %}selected{% endif %}>Zambia</option>
+        <option value="Zimbabwe" {% if project.country == "Zimbabwe" %}selected{% endif %}>Zimbabwe</option>
+    </select>
     <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Update Project</button>
 </form>
 <a href="{{ url_for('dashboard') }}" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>

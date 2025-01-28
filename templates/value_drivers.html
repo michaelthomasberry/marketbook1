@@ -3,8 +3,8 @@
 {% block content %}
 <div class="container">
     <h1>Value Drivers for {{ project.name }}</h1>
-    <h2>Identify What Your Customers Value Most</h2>
-    <p>Every great product starts with understanding what matters to your customers. Think about the factors that influence their buying decisions—what drives them to choose one product over another?</p>
+    <h2>Identify What A {{ project.target_customer }} Values Most When Choosing {{ project.category}}  </h2>
+    <p>Every great product starts with understanding what matters to your customers. What are the key factors that influence their buying decisions?</p>
 
     <div class="card mb-3">
         <div class="card-header">
@@ -89,7 +89,7 @@
         </div>
         <div class="card-body">
             <form method="POST">
-                <input type="text" name="value_driver" placeholder="My customer values..." required class="form-control mb-2">
+                <input type="text" name="value_driver" placeholder="A {{ project.target_customer }} Values:" required class="form-control mb-2">
                 <textarea name="measured_by" placeholder="Scoring Guidance 0-5 (optional)" class="form-control mb-2" rows="3"></textarea>
                 <button type="submit" name="add_value_driver" class="btn btn-primary"><i class="fas fa-plus"></i> Add Value Driver</button>
             </form>

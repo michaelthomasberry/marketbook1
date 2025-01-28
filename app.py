@@ -78,7 +78,9 @@ class User(db.Model, UserMixin):
 class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.Text)
+    category = db.Column(db.String(100), nullable=False)  # Add category field
+    target_customer = db.Column(db.String(100), nullable=False)  # Add target_customer field
+    country = db.Column(db.String(100), nullable=False)  # Add country field
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     has_market_map = db.Column(db.Boolean, default=False)  # EXACTLY like this
     shared_users = db.relationship('User', secondary='project_user', backref='shared_projects')
@@ -344,13 +346,21 @@ def reset_password(token):
 def dashboard():
     if request.method == 'POST':
         name = request.form.get('name')
-        description = request.form.get('description')
+        category = request.form.get('category')
+        target_customer = request.form.get('target_customer')
+        country = request.form.get('country')
 
-        if not name:
-            flash("Project name is required.", 'danger')
+        if not name or not category or not target_customer or not country:
+            flash("All fields are required.", 'danger')
             return redirect(url_for('dashboard'))
 
-        new_project = Project(name=name, description=description, user_id=current_user.id)
+        new_project = Project(
+            name=name,
+            category=category,
+            target_customer=target_customer,
+            country=country,
+            user_id=current_user.id
+        )
         db.session.add(new_project)
         db.session.commit()
         flash('Project created successfully!', 'success')
@@ -826,12 +836,16 @@ def rate_product(project_id, product_id_to_rate):
     notes_dict = {rating.value_driver_id: rating.note.note if rating.note else '' for rating in existing_ratings}
 
     if request.method == 'POST':
+        print("Form submitted")  # Debugging line
+        print("Form data:", request.form)  # Debugging line
         all_ratings_valid = True
 
         for vd in value_drivers:
             rating_name = f'rating_{vd.id}'
             rating_value = request.form.get(rating_name)
             note_value = request.form.get(f'note_{vd.id}')
+
+            print(f"Processing value driver {vd.id}: rating={rating_value}, note={note_value}")  # Debugging line
 
             try:
                 rating = int(rating_value)

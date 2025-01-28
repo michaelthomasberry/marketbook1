@@ -2,6 +2,12 @@ import logging
 from logging.config import fileConfig
 
 from flask import current_app
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate, MigrateCommand
+from flask_script import Manager
+
+db = SQLAlchemy(current_app)
+migrate = Migrate(current_app, db)
 
 from alembic import context
 

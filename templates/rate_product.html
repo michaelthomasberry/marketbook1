@@ -9,20 +9,13 @@
 <img src="{{ url_for('static', filename='uploads/' + product.image_filename) }}" alt="{{ product.product_name }} Image" width="200" class="mb-3">
 {% endif %}
 
-<div class="form-check form-switch mb-3">
-    <input class="form-check-input" type="checkbox" id="toggleGuidance" checked>
-    <label class="form-check-label" for="toggleGuidance">Show Scoring Guidance</label>
-</div>
-
 <form method="POST">
     {% for vd in value_drivers %}
     <div class="card mb-3">
         <div class="card-header">{{ vd.value_driver }} (Weighting: {{ "{:.1f}".format(vd.weighting) }}%)</div>
         <div class="card-body">
-            <h5>Scoring Guidance</h5>
-            <p class="measured-by">{{ vd.measured_by }}</p>
-            
-            <div class="form-group mt-3">
+            <p>{{ vd.measured_by }}</p>
+            <div class="form-group">
                 <label for="rating_{{ vd.id }}">Rating (0-5):</label>
                 <input
                     type="range"
@@ -37,38 +30,10 @@
                 />
                 <output class="rating-value" for="rating_{{ vd.id }}">{{ ratings.get(vd.id, 0) }}</output> {# Set initial output value #}
             </div>
-            <div class="form-group">
-                <label for="note_{{ vd.id }}">Notes:</label>
-                <textarea class="form-control" id="note_{{ vd.id }}" name="note_{{ vd.id }}" rows="2">{{ notes.get(vd.id, '') }}</textarea>
-            </div>
-        </div>
-    </div>
-
-    <!-- Edit Scoring Guidance Modal -->
-    <div class="modal fade" id="editScoringModal{{ vd.id }}" tabindex="-1" aria-labelledby="editScoringModalLabel{{ vd.id }}" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editScoringModalLabel{{ vd.id }}">Edit Scoring Guidance for {{ vd.value_driver }}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form method="POST" action="{{ url_for('edit_scoring_guidance', project_id=project.id, value_driver_id=vd.id) }}">
-                        <div class="form-group">
-                            <label for="measured_by_{{ vd.id }}">Scoring Guidance:</label>
-                            <textarea class="form-control" id="measured_by_{{ vd.id }}" name="measured_by" rows="5">{{ vd.measured_by }}</textarea>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-primary">Save changes</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
         </div>
     </div>
     {% endfor %}
-    <button type="submit" class="btn btn-primary">Submit Ratings and Notes</button>
+    <button type="submit" class="btn btn-primary">Submit Ratings</button>
 </form>
 
 <script>
@@ -77,21 +42,6 @@ function updateRatingDisplay(slider) {
   const output = document.querySelector(`output[for="${slider.id}"]`);
   output.textContent = ratingValue;
 }
-
-document.getElementById('toggleGuidance').addEventListener('change', function() {
-  const measuredByElements = document.querySelectorAll('.measured-by');
-  measuredByElements.forEach(element => {
-    element.style.display = this.checked ? 'block' : 'none';
-  });
-});
-
-// Ensure the measured-by elements are visible by default
-document.addEventListener('DOMContentLoaded', function() {
-  const measuredByElements = document.querySelectorAll('.measured-by');
-  measuredByElements.forEach(element => {
-    element.style.display = 'block';
-  });
-});
 </script>
 
 <style>
