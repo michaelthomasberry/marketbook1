@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% block title %}Upgrade to Premium{% endblock %}
+{% block content %}
+<div class="container">
+    <h1>Upgrade to Premium</h1>
+    <p>Upgrade to a premium account to unlock the following features:</p>
+    <ul>
+        <li>Create unlimited projects</li>
+        <li>Access advanced analytics</li>
+        <li>Priority customer support</li>
+        <li>And much more...</li>
+    </ul>
+    <p>Contact us at <a href="mailto:support@example.com">support@example.com</a> for more information.</p>
+    <form method="POST" action="{{ url_for('upgrade') }}">
+        <button type="submit" class="btn btn-warning"><i class="fas fa-arrow-up"></i> Upgrade to Premium</button>
+    </form>
+</div>
+{% endblock %}

@@ -117,7 +117,11 @@
     {% endif %}
 
     <div class="text-center">
-        <button id="addProjectButton" class="btn btn-primary"><i class="fas fa-plus"></i> Add Project</button>
+        {% if current_user.role == 'standard' and projects|length >= 2 %}
+            <a href="{{ url_for('upgrade') }}" class="btn btn-warning"><i class="fas fa-arrow-up"></i> Upgrade to Premium</a>
+        {% else %}
+            <button id="addProjectButton" class="btn btn-primary"><i class="fas fa-plus"></i> Add Project</button>
+        {% endif %}
     </div>
     <div id="projectForm" style="display: none;">
         <h2>Create New Project</h2>

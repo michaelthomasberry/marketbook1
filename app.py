@@ -340,11 +340,17 @@ def reset_password(token):
 ################## Routes for Home Page ####################
 
 # Dashboard
-@app.route('/dashboard', methods=['GET', 'POST'])  # Crucial: Add methods=['GET', 'POST']
+@app.route('/dashboard', methods=['GET', 'POST'])
 @app.route('/', methods=['GET', 'POST'])
 @login_required
 def dashboard():
     if request.method == 'POST':
+        if current_user.role == 'standard':
+            user_projects_count = Project.query.filter_by(user_id=current_user.id).count()
+            if user_projects_count >= 2:
+                flash('Upgrade to a premium account to create more projects.', 'warning')
+                return redirect(url_for('upgrade'))
+
         name = request.form.get('name')
         category = request.form.get('category')
         target_customer = request.form.get('target_customer')
@@ -379,6 +385,21 @@ def dashboard():
     pending_invitations_with_owners = [(project, User.query.get(project.user_id)) for project in pending_invitations]
 
     return render_template('dashboard.html', projects=projects, shared_projects=shared_projects, pending_invitations=pending_invitations_with_owners)
+
+@app.route('/upgrade', methods=['GET', 'POST'])
+@login_required
+def upgrade():
+    if request.method == 'POST':
+        current_user.role = 'premium'
+        db.session.commit()
+        flash('Congratulations! You have been upgraded to a premium account.', 'success')
+        return redirect(url_for('welcome_premium'))
+    return render_template('upgrade.html')
+
+@app.route('/welcome_premium')
+@login_required
+def welcome_premium():
+    return render_template('welcome_premium.html')
 
 # Accept project invitation
 @app.route('/accept_invitation/<int:project_id>', methods=['POST'])
@@ -681,6 +702,12 @@ def product_comparison(project_id):
         return redirect(url_for('dashboard'))
 
     if request.method == 'POST':
+        if current_user.role == 'standard':
+            user_products_count = Product.query.filter_by(project_id=project_id).count()
+            if user_products_count >= 6:
+                flash('Upgrade to a premium account to add more products.', 'warning')
+                return redirect(url_for('upgrade'))
+
         if 'add_product' in request.form:
             brand_name = request.form.get('brand_name')
             product_name = request.form.get('product_name')

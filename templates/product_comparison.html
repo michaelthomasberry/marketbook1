@@ -22,74 +22,82 @@
         </div>
     </div>
 </div>
-<div class="card mb-3">
-    <div class="card-header">
-        <a class="btn btn-link" data-toggle="collapse" href="#addProductForm" role="button" aria-expanded="false" aria-controls="addProductForm">
-            <i class="fas fa-plus-circle mr-2"></i> Add Product <i class="fas fa-chevron-down ml-auto"></i>
-        </a>
+
+{% if current_user.role == 'standard' and products|length >= 6 %}
+    <div class="alert alert-warning" role="alert">
+        You have reached the maximum number of products for a standard account. <a href="{{ url_for('upgrade') }}" class="alert-link">Upgrade to a premium account</a> to add more products.
     </div>
-    <div class="collapse" id="addProductForm">  
-        <div class="card-body">
-            <form method="POST" enctype="multipart/form-data">
-                <input type="text" name="brand_name" placeholder="Brand Name" required class="form-control mb-2">
-                <input type="text" name="product_name" placeholder="Product Name" required class="form-control mb-2">
-                <div class="form-group mb-2">
-                    <label for="currency">Currency:</label>
-                    <select class="form-control" id="currency" name="currency">
-                        <option value="gbp">£ (GBP)</option>
-                        <option value="usd">$ (USD)</option>
-                        <option value="eur">€ (EUR)</option>
-                        <option value="jpy">¥ (JPY)</option>
-                        <option value="aud">$ (AUD)</option>
-                        <option value="cad">$ (CAD)</option>
-                    </select>
-                </div>
-                <div class="input-group mb-2">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text" id="currency-symbol">£</span>
-                    </div>
-                    <input type="number" name="price" placeholder="Price" step="0.01" class="form-control">
-                    <input type="url" name="price_source" placeholder="Price Source (URL) - Optional" class="form-control">
-                </div>
-                <div class="form-group">
-                    <label for="image">Product Image:</label>
-                    <div class="custom-file">
-                        <input type="file" class="custom-file-input" id="image" name="image" accept="image/*">
-                        <label class="custom-file-label" for="image">Choose file</label>
-                    </div>
-                    <div id="drop-zone" class="border p-3 mt-2 text-center">
-                        Drag & Drop Image Here
-                    </div>
-                    <small class="form-text text-muted">Supported formats: png, jpg, jpeg, gif</small>
-                </div>
-                <button type="submit" name="add_product" class="btn btn-primary btn-block">Add Product</button>
-            </form>
+{% else %}
+    <div class="card mb-3">
+        <div class="card-header">
+            <a class="btn btn-link" data-toggle="collapse" href="#addProductForm" role="button" aria-expanded="false" aria-controls="addProductForm">
+                <i class="fas fa-plus-circle mr-2"></i> Add Product <i class="fas fa-chevron-down ml-auto"></i>
+            </a>
         </div>
+        <div class="collapse" id="addProductForm">  
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <input type="text" name="brand_name" placeholder="Brand Name" required class="form-control mb-2">
+                    <input type="text" name="product_name" placeholder="Product Name" required class="form-control mb-2">
+                    <div class="form-group mb-2">
+                        <label for="currency">Currency:</label>
+                        <select class="form-control" id="currency" name="currency">
+                            <option value="gbp">£ (GBP)</option>
+                            <option value="usd">$ (USD)</option>
+                            <option value="eur">€ (EUR)</option>
+                            <option value="jpy">¥ (JPY)</option>
+                            <option value="aud">$ (AUD)</option>
+                            <option value="cad">$ (CAD)</option>
+                        </select>
+                    </div>
+                    <div class="input-group mb-2">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text" id="currency-symbol">£</span>
+                        </div>
+                        <input type="number" name="price" placeholder="Price" step="0.01" class="form-control">
+                        <input type="url" name="price_source" placeholder="Price Source (URL) - Optional" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="image">Product Image:</label>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="image" name="image" accept="image/*">
+                            <label class="custom-file-label" for="image">Choose file</label>
+                        </div>
+                        <div id="drop-zone" class="border p-3 mt-2 text-center">
+                            Drag & Drop Image Here
+                        </div>
+                        <small class="form-text text-muted">Supported formats: png, jpg, jpeg, gif</small>
+                    </div>
+                    <button type="submit" name="add_product" class="btn btn-primary btn-block">Add Product</button>
+                </form>
+            </div>
+        </div>
+        <script>
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.getElementById('image');
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('bg-light');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('bg-light');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('bg-light');
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    const fileName = files[0].name;
+                    document.querySelector('.custom-file-label').textContent = fileName;
+                }
+            });
+        </script>
     </div>
-    <script>
-        const dropZone = document.getElementById('drop-zone');
-        const fileInput = document.getElementById('image');
-
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('bg-light');
-        });
-
-        dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('bg-light');
-        });
-
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('bg-light');
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                fileInput.files = files;
-                const fileName = files[0].name;
-                document.querySelector('.custom-file-label').textContent = fileName;
-            }
-        });
-    </script>
+{% endif %}
 
 {% if products %}
 <div class="row">
