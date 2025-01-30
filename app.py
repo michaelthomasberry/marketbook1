@@ -344,10 +344,15 @@ def reset_password(token):
 @app.route('/', methods=['GET', 'POST'])
 @login_required
 def dashboard():
+    if current_user.role == 'standard':
+        user_projects_count = Project.query.filter_by(user_id=current_user.id).count()
+        if user_projects_count >= PREMIUM_CONDITIONS['max_projects']:
+            flash('You have reached the maximum number of projects for a standard account. Upgrade to a premium account to create more projects.', 'warning')
+
     if request.method == 'POST':
         if current_user.role == 'standard':
             user_projects_count = Project.query.filter_by(user_id=current_user.id).count()
-            if user_projects_count >= 2:
+            if user_projects_count >= PREMIUM_CONDITIONS['max_projects']:
                 flash('Upgrade to a premium account to create more projects.', 'warning')
                 return redirect(url_for('upgrade'))
 
@@ -704,7 +709,7 @@ def product_comparison(project_id):
     if request.method == 'POST':
         if current_user.role == 'standard':
             user_products_count = Product.query.filter_by(project_id=project_id).count()
-            if user_products_count >= 6:
+            if user_products_count >= PREMIUM_CONDITIONS['max_products']:
                 flash('Upgrade to a premium account to add more products.', 'warning')
                 return redirect(url_for('upgrade'))
 
@@ -1255,6 +1260,32 @@ def settings():
             return redirect(url_for('register'))
 
     return render_template('settings.html')
+
+# Default premium conditions
+PREMIUM_CONDITIONS = {
+    'max_projects': 2,
+    'max_products': 6
+}
+
+@app.route('/admin/premium_conditions', methods=['GET', 'POST'])
+@login_required
+def premium_conditions():
+    if current_user.role != 'admin':
+        flash('You are not authorized to access this page.', 'danger')
+        return redirect(url_for('dashboard'))
+
+    if request.method == 'POST':
+        max_projects = request.form.get('max_projects')
+        max_products = request.form.get('max_products')
+
+        try:
+            PREMIUM_CONDITIONS['max_projects'] = int(max_projects)
+            PREMIUM_CONDITIONS['max_products'] = int(max_products)
+            flash('Premium conditions updated successfully!', 'success')
+        except ValueError:
+            flash('Invalid input. Please enter valid numbers.', 'danger')
+
+    return render_template('admin/premium_conditions.html', conditions=PREMIUM_CONDITIONS)
 
 ####################################Initiate App ############################################
 
