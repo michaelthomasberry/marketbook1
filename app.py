@@ -1299,6 +1299,95 @@ def premium_conditions():
 
     return render_template('admin/premium_conditions.html', conditions=PREMIUM_CONDITIONS)
 
+@app.route('/survey')
+@login_required
+def survey():
+    project_id = request.args.get('project_id')
+    project = Project.query.get_or_404(project_id)
+    survey_url = url_for('survey_comparison', project_id=project.id, _external=True)
+    return render_template('survey.html', survey_url=survey_url, project=project)
+
+@app.route('/survey_comparison', methods=['GET', 'POST'])
+def survey_comparison():
+    project_id = request.args.get('project_id')
+    project = Project.query.get_or_404(project_id)
+    value_drivers = ValueDriver.query.filter_by(project_id=project_id).all()
+    num_drivers = len(value_drivers)
+
+    if num_drivers < 2:
+        flash("You need at least two value drivers to perform comparisons.", 'danger')
+        return redirect(url_for('value_drivers', project_id=project_id))
+
+    if request.method == 'POST':
+        comparisons = {}
+        for i in range(num_drivers):
+            for j in range(i + 1, num_drivers):
+                comparison_key = f"{value_drivers[i].id}-{value_drivers[j].id}"
+                comparison_value = request.form.get(comparison_key)
+                if comparison_value:
+                    comparisons[(value_drivers[i].id, value_drivers[j].id)] = int(comparison_value) # Store as tuple keys
+
+        for (id1, id2), value in comparisons.items():
+            winner_id = id1 if value == 1 else id2
+            comparison_result = ComparisonResult(
+                project_id=project_id,
+                value_driver_a_id=id1,
+                value_driver_b_id=id2,
+                winner_id=winner_id
+            )
+            db.session.add(comparison_result)
+
+        db.session.commit()
+        flash('Thank you for your submission!', 'success')
+        return redirect(url_for('thank_you'))
+
+    comparisons = []
+    for i in range(num_drivers):
+        for j in range(i + 1, num_drivers):
+            comparisons.append((value_drivers[i], value_drivers[j]))
+
+    return render_template('survey_comparison.html', project=project, value_drivers=value_drivers, comparisons=comparisons)
+
+@app.route('/thank_you')
+def thank_you():
+    return render_template('thank_you.html')
+
+@app.route('/survey_results/<int:project_id>')
+def survey_results(project_id):
+    project = Project.query.get_or_404(project_id)
+    value_drivers = ValueDriver.query.filter_by(project_id=project_id).all()
+
+    # Initialize a dictionary to store the win counts for each value driver
+    win_counts = {vd.id: 0 for vd in value_drivers}
+
+    # Fetch all comparison results for the project
+    comparison_results = ComparisonResult.query.filter_by(project_id=project_id).all()
+
+    # Count the wins for each value driver
+    for result in comparison_results:
+        win_counts[result.winner_id] += 1
+
+    # Calculate the total number of comparisons
+    total_comparisons = len(comparison_results)
+
+    # Calculate the weightings based on the win counts
+    if total_comparisons > 0:
+        for vd in value_drivers:
+            vd.weighting = (win_counts[vd.id] / total_comparisons) * 100
+            db.session.commit()
+
+    labels = [vd.value_driver for vd in value_drivers]
+    weights = [vd.weighting for vd in value_drivers]
+
+    # Calculate the number of survey submissions
+    num_submissions = total_comparisons // (len(value_drivers) * (len(value_drivers) - 1) // 2)
+
+    return render_template('survey_results.html', project=project, labels=labels, weights=weights, num_submissions=num_submissions)
+
+@app.template_filter('zip')
+def zip_filter(a, b):
+    return zip(a, b)
+
 ####################################Initiate App ############################################
 
 if __name__ == '__main__':

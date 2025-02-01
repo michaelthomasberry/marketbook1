@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Survey Results</h1>
+    <p>Number of submissions: {{ num_submissions }}</p>
+    <ul>
+        {% for label, weight in labels|zip(weights) %}
+        <li>{{ label }}: {{ "%.1f" | format(weight) }}%</li>
+        {% endfor %}
+    </ul>
+    <a href="{{ url_for('value_drivers', project_id=project.id) }}" class="btn btn-primary mt-3">Return to Value Drivers</a>
+</div>
+{% endblock %}

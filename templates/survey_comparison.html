@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Survey Comparison</h1>
+    <p class="lead">In this step, you'll compare pairs of value drivers, helping you prioritize what's most important.</p>
+
+    {% if value_drivers %}
+    <form method="POST">
+        <h2>Compare Value Drivers</h2>
+        <div class="progress mb-3">
+            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="{{ comparisons|length }}"></div>
+        </div>
+        <div id="comparison-container">
+            {% for vd1, vd2 in comparisons %}
+            <div class="card mb-3 comparison" id="comparison-{{ loop.index }}" {% if not loop.first %}style="display: none;"{% endif %}>
+                <div class="card-body">
+                    <h5 class="card-title">Compare: {{ vd1.value_driver }} vs. {{ vd2.value_driver }}</h5>
+                    <p>Which of these is more important?</p>
+                    <div class="d-flex justify-content-around comparison-options" data-name="{{ vd1.id }}-{{ vd2.id }}">
+                        <label class="comparison-option" data-value="1" style="width: 45%;">
+                            <div class="border p-3 rounded text-center h-100 d-flex align-items-center justify-content-center" style="cursor: pointer;">
+                                {{ vd1.value_driver }}
+                            </div>
+                            <input type="radio" name="{{ vd1.id }}-{{ vd2.id }}" value="1" style="display: none;" required>
+                        </label>
+                        <div class="d-flex align-items-center"><span style="font-size: 2em; margin: 0 10px;">VS</span></div>
+                        <label class="comparison-option" data-value="2" style="width: 45%;">
+                            <div class="border p-3 rounded text-center h-100 d-flex align-items-center justify-content-center" style="cursor: pointer;">
+                                {{ vd2.value_driver }}
+                            </div>
+                            <input type="radio" name="{{ vd1.id }}-{{ vd2.id }}" value="2" style="display: none;">
+                        </label>
+                    </div>
+                    <div class="d-flex justify-content-end mt-3">
+                        <button type="button" class="next-comparison btn btn-primary" style="display:none;">Next Comparison</button>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="d-flex justify-content-end">
+            <button type="submit" id="submit-comparisons" class="btn btn-success mt-3" style="display: none;">Submit Comparisons</button>
+        </div>
+    </form>
+    {% else %}
+    <p>No value drivers to compare.</p>
+    {% endif %}
+
+    <script>
+        const comparisons = document.querySelectorAll('.comparison');
+        const submitButton = document.getElementById('submit-comparisons');
+        const progressBar = document.querySelector('.progress-bar');
+        let currentComparisonIndex = 0;
+        const numComparisons = comparisons.length;
+
+        // Show the "Next Comparison" button if a radio button in the first comparison is already checked
+        const firstComparisonRadios = comparisons[0].querySelectorAll('input[type="radio"]');
+        let firstComparisonSelected = false;
+        firstComparisonRadios.forEach(radio => {
+            if (radio.checked) {
+                firstComparisonSelected = true;
+            }
+        });
+        if (firstComparisonSelected) {
+            comparisons[0].querySelector('.next-comparison').style.display = 'inline-block';
+        }
+
+        document.getElementById('comparison-container').addEventListener('click', (event) => {
+            const optionsContainer = event.target.closest('.comparison-options');
+            if (optionsContainer) {
+                const name = optionsContainer.dataset.name;
+                const clickedOption = event.target.closest('.comparison-option');
+                if (clickedOption) {
+                    const value = clickedOption.dataset.value;
+
+                    optionsContainer.querySelectorAll('.comparison-option').forEach(opt => opt.classList.remove('active'));
+                    clickedOption.classList.add('active');
+
+                    const radio = optionsContainer.querySelector(`input[name="${name}"][value="${value}"]`);
+                    if (radio) {
+                        radio.checked = true;
+                        optionsContainer.closest('.comparison').querySelector('.next-comparison').style.display = 'inline-block';
+                    }
+                }
+            }
+        });
+
+        const nextButtons = document.querySelectorAll('.next-comparison');
+        nextButtons.forEach(nextButton => {
+          nextButton.addEventListener('click', () => {
+              comparisons[currentComparisonIndex].style.display = 'none';
+              currentComparisonIndex++;
+
+              if (currentComparisonIndex < numComparisons) {
+                  comparisons[currentComparisonIndex].style.display = 'block';
+                  updateProgressBar();
+                  nextButton.style.display = 'none'; // Hide the button after moving to the next comparison
+              } else {
+                  nextButton.style.display = 'none';
+                  submitButton.style.display = 'block';
+                  updateProgressBar();
+              }
+          });
+        });
+
+        function updateProgressBar() {
+            const progressPercent = (currentComparisonIndex / numComparisons) * 100;
+            progressBar.style.width = `${progressPercent}%`;
+            progressBar.setAttribute('aria-valuenow', currentComparisonIndex);
+        }
+    </script>
+
+    <style>
+        .comparison-option.active .border {
+            background-color: #007bff;
+            color: white;
+        }
+        .comparison {
+            max-width: 100%;
+        }
+        @media (max-width: 768px) {
+            .comparison {
+                font-size: 0.9em;
+            }
+            .comparison .card-body {
+                padding: 10px;
+            }
+            .comparison .card-title {
+                font-size: 1.1em;
+            }
+            .comparison .comparison-options {
+                flex-direction: column;
+            }
+            .comparison .comparison-options .comparison-option {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            .comparison .comparison-options .comparison-option:last-child {
+                margin-bottom: 0;
+            }
+            .comparison .comparison-options .d-flex {
+                flex-direction: column;
+                align-items: center;
+            }
+            .comparison .comparison-options .d-flex span {
+                font-size: 1.5em;
+                margin: 10px 0;
+            }
+        }
+    </style>
+</div>
+{% endblock %}

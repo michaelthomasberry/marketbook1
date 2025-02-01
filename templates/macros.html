@@ -1,0 +1,5 @@
+{% macro zip(a, b) %}
+    {% for i in range(a|length) %}
+        {{ caller(a[i], b[i]) }}
+    {% endfor %}
+{% endmacro %}
