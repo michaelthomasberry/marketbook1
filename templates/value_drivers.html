@@ -75,7 +75,9 @@
     {% if value_drivers|length >= 2 %}
         <div class="d-flex flex-column flex-md-row justify-content-between mb-3">
             {% if not all_weighted %}
-                <a href="{{ url_for('compare_value_drivers', project_id=project.id) }}" class="btn btn-primary mb-2 mb-md-0"><i class="fas fa-balance-scale"></i> Weight My Value Drivers</a>
+                <form method="post">
+                    <a href="{{ url_for('pairwise_comparison', project_id=project.id) }}" class="btn btn-primary mb-2 mb-md-0"><i class="fas fa-balance-scale"></i> Weight My Value Drivers</a>
+                </form>
             {% endif %}
             <form method="POST" style="display: inline;">
                 <button type="submit" name="reset_weightings" class="btn btn-secondary">Reset Weightings</button>

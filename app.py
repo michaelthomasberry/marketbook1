@@ -569,6 +569,8 @@ def value_drivers(project_id):
             ComparisonResult.query.filter_by(project_id=project_id).delete()
             db.session.commit()
             flash('Value driver weightings have been reset and comparison results deleted.', 'success')
+        elif 'weight_my_drivers' in request.form:  # New button for weighting drivers
+            return redirect(url_for('pairwise_comparison', project_id=project_id))
         return redirect(url_for('value_drivers', project_id=project_id))  # Redirect after all POST operations
 
     value_drivers = ValueDriver.query.filter_by(project_id=project_id).all()
@@ -695,6 +697,16 @@ def comparison_results(project_id):
     plot_url = base64.b64encode(img.getvalue()).decode()
 
     return render_template('results.html', project=project, plot_url=plot_url, labels=labels, weights=weights)
+
+@app.route('/manage/<int:project_id>/pairwise_comparison')
+@login_required
+def pairwise_comparison(project_id):
+    project = Project.query.get_or_404(project_id)
+    if project.user_id != current_user.id and current_user not in project.shared_users:
+        flash('You are not authorized to manage this project.', 'danger')
+        return redirect(url_for('dashboard'))
+
+    return render_template('pairwise_comparison.html', project=project)
 
 ###########################routes for managing comparing products ####
 # Product Comparison
