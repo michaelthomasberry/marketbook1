@@ -174,6 +174,11 @@ class RatingNote(db.Model):
 
     rating = db.relationship('Rating', backref=db.backref('note', uselist=False))
 
+class MarketingMessage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    content = db.Column(db.Text, nullable=False)
+    is_active = db.Column(db.Boolean, default=False)
+
 class MyAdminIndexView(AdminIndexView):
     @expose('/')
     @login_required
@@ -205,6 +210,7 @@ admin.add_view(SecureModelView(Reply, db.session))
 admin.add_view(SecureModelView(Like, db.session))
 admin.add_view(SecureModelView(RatingNote, db.session))
 admin.add_view(SecureModelView(ComparisonResult, db.session))
+admin.add_view(SecureModelView(MarketingMessage, db.session))
 
 ############################## Routes  #######################################################################
 ###########Routes For Logging a user in ##############
@@ -389,7 +395,15 @@ def dashboard():
 
     pending_invitations_with_owners = [(project, User.query.get(project.user_id)) for project in pending_invitations]
 
-    return render_template('dashboard.html', projects=projects, shared_projects=shared_projects, pending_invitations=pending_invitations_with_owners)
+    # Fetch the active marketing message
+    marketing_message = MarketingMessage.query.filter_by(is_active=True).first()
+    marketing_message_dict = {
+        'content': marketing_message.content,
+        'is_active': marketing_message.is_active
+    } if marketing_message else None
+    print("Marketing Message:", marketing_message_dict)  # Debugging line
+
+    return render_template('dashboard.html', projects=projects, shared_projects=shared_projects, pending_invitations=pending_invitations_with_owners, marketing_message=marketing_message_dict)
 
 @app.route('/upgrade', methods=['GET', 'POST'])
 @login_required
@@ -1387,6 +1401,32 @@ def survey_results(project_id):
 @app.template_filter('zip')
 def zip_filter(a, b):
     return zip(a, b)
+
+@app.route('/admin/marketing_message', methods=['GET', 'POST'])
+@login_required
+def manage_marketing_message():
+    if current_user.role != 'admin':
+        flash('You are not authorized to access this page.', 'danger')
+        return redirect(url_for('dashboard'))
+
+    message = MarketingMessage.query.first()
+
+    if request.method == 'POST':
+        content = request.form.get('content')
+        is_active = 'is_active' in request.form
+
+        if message:
+            message.content = content
+            message.is_active = is_active
+        else:
+            message = MarketingMessage(content=content, is_active=is_active)
+            db.session.add(message)
+
+        db.session.commit()
+        flash('Marketing message updated successfully!', 'success')
+        return redirect(url_for('manage_marketing_message'))
+
+    return render_template('admin/marketing_message.html', message=message)
 
 ####################################Initiate App ############################################
 

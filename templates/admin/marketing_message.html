@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h1>Manage Marketing Message</h1>
+    <form method="POST">
+        <div class="form-group">
+            <label for="content">Message Content</label>
+            <textarea class="form-control" id="content" name="content" rows="5">{{ message.content if message else '' }}</textarea>
+        </div>
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="is_active" name="is_active" {% if message and message.is_active %}checked{% endif %}>
+            <label class="form-check-label" for="is_active">Active</label>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Save</button>
+    </form>
+</div>
+{% endblock %}
