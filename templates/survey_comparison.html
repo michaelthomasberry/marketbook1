@@ -3,11 +3,11 @@
 {% block content %}
 <div class="container mt-4">
     <h1>Survey Comparison</h1>
-    <p class="lead">In this step, you'll compare pairs of value drivers, helping you prioritize what's most important.</p>
+    <p class="lead">Please compare and choose what you value most, helping us prioritize product features thats most important to you.</p>
 
     {% if value_drivers %}
     <form method="POST">
-        <h2>Compare Value Drivers</h2>
+        <h2>Whats more important?</h2>
         <div class="progress mb-3">
             <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="{{ comparisons|length }}"></div>
         </div>
@@ -15,7 +15,7 @@
             {% for vd1, vd2 in comparisons %}
             <div class="card mb-3 comparison" id="comparison-{{ loop.index }}" {% if not loop.first %}style="display: none;"{% endif %}>
                 <div class="card-body">
-                    <h5 class="card-title">Compare: {{ vd1.value_driver }} vs. {{ vd2.value_driver }}</h5>
+                    <h5 class="card-title">Choose: {{ vd1.value_driver }} vs. {{ vd2.value_driver }}</h5>
                     <p>Which of these is more important?</p>
                     <div class="d-flex justify-content-around comparison-options" data-name="{{ vd1.id }}-{{ vd2.id }}">
                         <label class="comparison-option" data-value="1" style="width: 45%;">

@@ -3,13 +3,17 @@
 {% block content %}
 <div class="container mt-4">
     <h1>Pairwise Comparison</h1>
+    <div class="alert alert-info" role="alert">
+        <i class="fa fa-graduation-cap" aria-hidden="true"></i><h4 class="alert-heading">Understanding Pairwise Comparison Methodology</h4>
+        <p>Think of building a house. You have many features you could include (a big kitchen, a home office, a large garden). Pairwise comparison helps you decide which features are most valuable to the homeowner. Do they value a big kitchen more than a large garden? By comparing these features two at a time, you can determine the true priorities and ensure you build a house that meets their needs. The same principle applies to product development – pairwise comparison helps you prioritize the value drivers that will resonate most with your customers.</p>
+    </div>
     <div class="row">
         <div class="col-md-6">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title"><i class="fas fa-balance-scale"></i> Workshop Comparison</h5>
-                    <p class="card-text">Compare Value Drivers through a workshop.</p>
-                    <a href="{{ url_for('compare_value_drivers', project_id=project.id) }}" class="btn btn-primary"><i class="fas fa-chart-line"></i> Compare Value Drivers</a>
+                    <h5 class="card-title"><i class="fas fa-balance-scale"></i> Comparison Workshop</h5>
+                    <p class="card-text">You and your team probably have a gut feeling about what your customer care about most.  Compare your ideas easily and quickly to make a good working hypothesis.</p>
+                    <a href="{{ url_for('compare_value_drivers', project_id=project.id) }}" class="btn btn-primary"><i class="fas fa-user"></i> Start Comparison Workshop</a>
                 </div>
             </div>
         </div>
@@ -17,8 +21,12 @@
             <div class="card">
                 <div class="card-body">
                     <h5 class="card-title"><i class="fas fa-poll"></i> Survey Comparison</h5>
-                    <p class="card-text">Coming soon...</p>
-                    <a href="{{ url_for('survey', project_id=project.id) }}" class="btn btn-primary"><i class="fas fa-link"></i> Go to Survey</a>
+                    <p class="card-text">Stop guessing, start validating. Gather real feedback from your team and customers. Our easy survey tool guides participants through simple comparisons, revealing your product's true priorities.  Make confident decisions based on statistically significant data.</p>
+                    {% if current_user.role == 'standard' %}
+                    <a href="{{ url_for('upgrade') }}" class="btn btn-warning"><i class="fas fa-arrow-up"></i> Upgrade to Premium</a>
+                    {% else %}
+                    <a href="{{ url_for('survey', project_id=project.id) }}" class="btn btn-primary"><i class="fas fa-user-plus"></i> Start Survey Comparison</a>
+                    {% endif %}
                 </div>
             </div>
         </div>

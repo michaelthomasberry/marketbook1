@@ -9,6 +9,60 @@
         <li>{{ label }}: {{ "%.1f" | format(weight) }}%</li>
         {% endfor %}
     </ul>
+    <div style="max-width: 300px; margin: auto;">
+        <canvas id="surveyPieChart" width="300" height="300"></canvas>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        var ctx = document.getElementById('surveyPieChart').getContext('2d');
+        var surveyPieChart = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: {{ labels | tojson }},
+                datasets: [{
+                    data: {{ weights | tojson }},
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)',
+                        'rgba(255, 159, 64, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                var label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += context.raw.toFixed(1) + '%';
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
     <a href="{{ url_for('value_drivers', project_id=project.id) }}" class="btn btn-primary mt-3">Return to Value Drivers</a>
 </div>
 {% endblock %}
