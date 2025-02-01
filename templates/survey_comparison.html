@@ -2,8 +2,8 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h1>Survey Comparison</h1>
-    <p class="lead">Please compare and choose what you value most, helping us prioritize product features thats most important to you.</p>
+    <h1>Survey Comparison for {{ project.category }}</h1>
+    <p class="lead">Please compare and choose what you value most, helping us prioritize product features that are most important to you.</p>
 
     {% if value_drivers %}
     <form method="POST">
