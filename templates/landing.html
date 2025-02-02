@@ -6,6 +6,8 @@
     <title>Market Mapper - Your Market Research Companion</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css" />  <style>
+      
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -15,37 +17,70 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         .hero {
-            background: url('/static/images/hero-bg.jpg') no-repeat center center;
-            background-size: cover;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('/static/images/hero-bg.jpg'); /* Gradient overlay */
+            background-size: 105%; /* Start slightly zoomed in for effect */
+            background-position: center;
             color: white;
-            padding: 100px 0;
+            padding: 80px 0; /* Adjusted padding */
             text-align: center;
             position: relative;
+            overflow: hidden; /* Important for animations */
+            transition: background-size 1s ease-in-out; /* Zoom transition */
         }
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
+
+        .hero:hover {
+            background-size: 100%; /* Zoom out on hover (optional) */
         }
-        .hero .container {
-            position: relative;
-            z-index: 1;
+
+        .hero .container * {
+            opacity: 0; /* Initial state for fade-in */
+            animation: fadeIn 1s ease-in-out 0.5s forwards; /* Fade-in animation */
         }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px); /* Optional slide-up */
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+
+        .hero .container h1 {
+            font-size: 2.5rem; /* Adjusted font size */
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            animation-delay: 0.7s;
+        }
+        .hero .container p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            animation-delay: 0.9s;
+        }
+        .hero .container a {
+            animation-delay: 1.1s;
+        }
+
         .feature, .cta {
-            padding: 50px 0;
+            padding: 30px 0;
         }
         .feature h2, .cta h2 {
-            margin-bottom: 30px;
+            margin-bottom: 20px;
+            font-size: 2rem;
         }
         .feature p, .cta p {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
         .feature .col-md-6, .feature .col-md-4 {
-            margin-bottom: 30px;
+            margin-bottom: 20px;
+        }
+        .feature img {
+            max-width: 100%;
+            height: auto;
         }
         .cta {
             background: #007bff;
@@ -58,7 +93,24 @@
         }
         footer {
             background: #f8f9fa;
-            padding: 20px 0;
+            padding: 15px 0;
+        }
+
+        @media (max-width: 768px) {
+            .col-md-4 {
+                -ms-flex: 0 0 100%;
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+            .hero h1 {
+                font-size: 2rem;
+            }
+            .hero p {
+                font-size: 1rem;
+            }
+            .feature h2, .cta h2 {
+                font-size: 1.7rem;
+            }
         }
     </style>
 </head>
@@ -80,10 +132,10 @@
         </div>
     </nav>
 
-    <div class="hero">
+    <div class="hero" style="background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('{{ url_for('static', filename='images/hero-bg.jpg') }}');">
         <div class="container">
-            <h1>Stop Guessing, Start Knowing Your Market</h1>
-            <p>Introducing Market Mapper</p>
+            <h1 class="display-4 font-weight-bold" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">Stop Guessing, Start Knowing Your Market</h1>
+            <p class="lead" style="font-size: 1.4rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">Introducing Market Mapper</p>
             <a href="{{ url_for('register') }}" class="btn btn-lg btn-primary">Create an Account</a>
         </div>
     </div>
@@ -91,49 +143,46 @@
     <div class="container feature">
         <div class="row">
             <div class="col-md-12 text-center">
-                <h2>Tired of competitor analysis that just scratches the surface?</h2>
-                <p>Wish you had crystal-clear insights into what really drives customer decisions? Then get ready to ditch the spreadsheets and say hello to Market Mapper, the revolutionary competitive intelligence tool built to make you a market-mapping superstar.</p>
-                <p>Finally, a competitive analysis tool that goes beyond feature lists. Market Mapper dives deep into value drivers – the things your customers actually care about – so you can make data-driven decisions that propel your product to the top.</p>
-                <img src="/static/images/market-mapper-interface.jpg" alt="Market Mapper Interface" class="img-fluid my-4">
-            </div>
-        </div>
-     
-        <div class="row">
-            <div class="col-md-12 text-center">
-            <h2>Mapping Your Market in 6 Easy Steps</h2>
-            </div>
-            <div class="col-md-4 text-center">
-            <i class="fas fa-bullseye fa-3x mb-3" style="color: #4169E1;"></i>
-            <h3>1. Define Scope</h3>
-            <p>Specify your target market, product category, and audience.</p>
-            </div>
-            <div class="col-md-4 text-center">
-            <i class="fas fa-heart fa-3x mb-3" style="color: #4169E1;"></i>
-            <h3>2. Identify Drivers</h3>
-            <p>Determine core value drivers influencing customer decisions.</p>
-            </div>
-            <div class="col-md-4 text-center">
-            <i class="fas fa-balance-scale fa-3x mb-3" style="color: #4169E1;"></i>
-            <h3>3. Weight Drivers</h3>
-            <p>Use pairwise comparisons to find the relative importance of each driver.</p>
-            </div>
-            <div class="col-md-4 text-center">
-            <i class="fas fa-box fa-3x mb-3" style="color: #4169E1;"></i>
-            <h3>4. Add Products</h3>
-            <p>Include details like brand, price, and image for each product.</p>
-            </div>
-            <div class="col-md-4 text-center">
-            <i class="fas fa-star fa-3x mb-3" style="color: #4169E1;"></i>
-            <h3>5. Rate Performance</h3>
-            <p>Score products on each value driver to assess strengths and weaknesses.</p>
-            </div>
-            <div class="col-md-4 text-center">
-            <i class="fas fa-chart-pie fa-3x mb-3" style="color: #4169E1;"></i>
-            <h3>6. Visualize Map</h3>
-            <p>Generate a market map to identify price points and market gaps.</p>
+                <h2 class="font-weight-bold display-4" style="color: #333; margin-bottom: 20px;">Tired of competitor analysis that just scratches the surface?</h2>
+                <p class="lead" style="color: #555; line-height: 1.8; margin-bottom: 30px;">Wish you had crystal-clear insights into what really drives customer decisions? Then get ready to ditch the spreadsheets and say hello to Market Mapper, the revolutionary competitive intelligence tool built to make you a market-mapping superstar.</p>
+                <p style="color: #555; line-height: 1.8; margin-bottom: 40px;">Finally, a competitive analysis tool that goes beyond feature lists. Market Mapper dives deep into value drivers – the things your customers actually care about – so you can make data-driven decisions that propel your product to the top.</p>
+                <img src="{{ url_for('static', filename='Images/market-mapper-interface.jpg') }}" alt="Market Mapper Interface" class="img-fluid rounded shadow" style="max-width: 80%; margin: 0 auto; display: block;">
             </div>
         </div>
 
+        <div class="row" data-aos="fade-up" data-aos-duration="1000">  <div class="col-md-12 text-center">
+            <h2>Mapping Your Market in 6 Easy Steps</h2>
+        </div>
+        <div class="col-md-4 text-center" data-aos="fade-in" data-aos-delay="200">  <i class="fas fa-bullseye fa-3x mb-3" style="color: #4169E1;"></i>
+            <h3>1. Define Scope</h3>
+            <p>Specify your target market, product category, and audience.</p>
+        </div>
+        <div class="col-md-4 text-center" data-aos="fade-in" data-aos-delay="400">
+            <i class="fas fa-heart fa-3x mb-3" style="color: #4169E1;"></i>
+            <h3>2. Identify Drivers</h3>
+            <p>Determine core value drivers influencing customer decisions.</p>
+        </div>
+        <div class="col-md-4 text-center" data-aos="fade-in" data-aos-delay="600">
+            <i class="fas fa-balance-scale fa-3x mb-3" style="color: #4169E1;"></i>
+            <h3>3. Weight Drivers</h3>
+            <p>Use pairwise comparisons to find the relative importance of each driver.</p>
+        </div>
+        <div class="col-md-4 text-center" data-aos="fade-in" data-aos-delay="800">
+            <i class="fas fa-box fa-3x mb-3" style="color: #4169E1;"></i>
+            <h3>4. Add Products</h3>
+            <p>Include details like brand, price, and image for each product.</p>
+        </div>
+        <div class="col-md-4 text-center" data-aos="fade-in" data-aos-delay="1000">
+            <i class="fas fa-star fa-3x mb-3" style="color: #4169E1;"></i>
+            <h3>5. Rate Performance</h3>
+            <p>Score products on each value driver to assess strengths and weaknesses.</p>
+        </div>
+        <div class="col-md-4 text-center" data-aos="fade-in" data-aos-delay="1200">
+            <i class="fas fa-chart-pie fa-3x mb-3" style="color: #4169E1;"></i>
+            <h3>6. Visualize Map</h3>
+            <p>Generate a market map to identify price points and market gaps.</p>
+        </div>
+    </div>
     <div class="container feature">
         <div class="row">
             <div class="col-md-12 hero" style="background: #28a745; color: white; padding: 50px 0; text-align: center;">
@@ -144,52 +193,48 @@
             </div>
         </div>
         <br>
-        <div class="row">
-            <div class="col-md-4 text-center">
-            <i class="fas fa-chart-line fa-3x mb-3" style="color: #28a745;"></i>
-            <h3>Pinpoint Optimal Price Points</h3>
-            <p>Know exactly where your product sits in the value-price matrix and identify opportunities to maximize profitability.</p>
+        <div class="row" data-aos="fade-up" data-aos-duration="1000">
+            <div class="col-md-4 text-center" data-aos="fade-in" data-aos-delay="200">
+                <i class="fas fa-chart-line fa-3x mb-3" style="color: #28a745;"></i>
+                <h3>Pinpoint Optimal Price Points</h3>
+                <p>Know exactly where your product sits in the value-price matrix and identify opportunities to maximize profitability.</p>
             </div>
-            <div class="col-md-4 text-center">
-            <i class="fas fa-search fa-3x mb-3" style="color: #28a745;"></i>
-            <h3>Uncover Market Gaps</h3>
-            <p>Discover underserved customer needs and carve out your competitive edge.</p>
+            <div class="col-md-4 text-center" data-aos="fade-in" data-aos-delay="400">
+                <i class="fas fa-search fa-3x mb-3" style="color: #28a745;"></i>
+                <h3>Uncover Market Gaps</h3>
+                <p>Discover underserved customer needs and carve out your competitive edge.</p>
             </div>
-            <div class="col-md-4 text-center">
-            <i class="fas fa-trash-alt fa-3x mb-3" style="color: #28a745;"></i>
-            <h3>Phase Out Products Strategically</h3>
-            <p>Make data-driven decisions about which products to sunset, freeing up resources for your winners.</p>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-md-4 text-center">
-            <i class="fas fa-pen fa-3x mb-3" style="color: #28a745;"></i>
-            <h3>Craft Killer Marketing Copy</h3>
-            <p>Speak directly to what your customers value most, boosting engagement and conversions.</p>
-            </div>
-            <div class="col-md-4 text-center">
-            <i class="fas fa-tasks fa-3x mb-3" style="color: #28a745;"></i>
-            <h3>Prioritize Product Requirements</h3>
-            <p>Focus your development efforts on the features that will have the biggest impact.</p>
-            </div>
-            <div class="col-md-4 text-center">
-            <i class="fas fa-chess-king fa-3x mb-3" style="color: #28a745;"></i>
-            <h3>Create Winning Battle Cards</h3>
-            <p>Equip your sales team with the insights they need to crush the competition.</p>
-            </div>
-            <div class="col-md-4 text-center">
-            <i class="fas fa-lightbulb fa-3x mb-3" style="color: #28a745;"></i>
-            <h3>Improve Product Concept Evaluations</h3>
-            <p>Validate new product ideas with data-driven insights to ensure market fit and success.</p>
+            <div class="col-md-4 text-center" data-aos="fade-in" data-aos-delay="600">
+                <i class="fas fa-trash-alt fa-3x mb-3" style="color: #28a745;"></i>
+                <h3>Phase Out Products Strategically</h3>
+                <p>Make data-driven decisions about which products to sunset, freeing up resources for your winners.</p>
             </div>
         </div>
-     
+        <div class="row" data-aos="fade-up" data-aos-duration="1000">  <div class="col-md-4 text-center" data-aos="fade-in" data-aos-delay="800">
+                <i class="fas fa-pen fa-3x mb-3" style="color: #28a745;"></i>
+                <h3>Craft Killer Marketing Copy</h3>
+                <p>Speak directly to what your customers value most, boosting engagement and conversions.</p>
+            </div>
+            <div class="col-md-4 text-center" data-aos="fade-in" data-aos-delay="1000">
+                <i class="fas fa-tasks fa-3x mb-3" style="color: #28a745;"></i>
+                <h3>Prioritize Product Requirements</h3>
+                <p>Focus your development efforts on the features that will have the biggest impact.</p>
+            </div>
+            <div class="col-md-4 text-center" data-aos="fade-in" data-aos-delay="1200">
+                <i class="fas fa-chess-king fa-3x mb-3" style="color: #28a745;"></i>
+                <h3>Create Winning Battle Cards</h3>
+                <p>Equip your sales team with the insights they need to crush the competition.</p>
+            </div>
         </div>
+        <div class="row" data-aos="fade-up" data-aos-duration="1000">  <div class="col-md-4 text-center" data-aos="fade-in" data-aos-delay="1400">
+                <i class="fas fa-lightbulb fa-3x mb-3" style="color: #28a745;"></i>
+                <h3>Improve Product Concept Evaluations</h3>
+                <p>Validate new product ideas with data-driven insights to ensure market fit and success.</p>
+            </div>
         </div>
 
     <div class="cta">
         <div class="container">
-
             <h2>Ready to Ditch the Guesswork and Embrace Data-Driven Decisions?</h2>
             <a href="{{ url_for('register') }}" class="btn btn-lg btn-light">Start Mapping Today!</a>
             <p class="mt-3">Free Tier: Get started with 3 projects, 6 product comparisons, and workshop-based pairwise comparisons. Perfect for exploring the power of Market Mapper.</p>
@@ -198,11 +243,19 @@
     </div>
 
     <footer class="bg-light text-center py-4">
-        <p>&copy; 2023 Market Mapper. All rights reserved.</p>
+        <p>&copy; 2025 Market Mapper. All rights reserved.</p>
     </footer>
 
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>  <script>
+        AOS.init({
+            // Global settings if needed (optional)
+            duration: 800, // Animation duration
+            easing: 'ease-in-out',  // Animation easing
+        });
+    </script>
 </body>
 </html>
+
