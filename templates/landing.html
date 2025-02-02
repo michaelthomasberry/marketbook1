@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Mapper - Your Market Research Companion</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+        }
+        .navbar {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .hero {
+            background: url('/static/images/hero-bg.jpg') no-repeat center center;
+            background-size: cover;
+            color: white;
+            padding: 100px 0;
+            text-align: center;
+            position: relative;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        .hero .container {
+            position: relative;
+            z-index: 1;
+        }
+        .feature, .cta {
+            padding: 50px 0;
+        }
+        .feature h2, .cta h2 {
+            margin-bottom: 30px;
+        }
+        .feature p, .cta p {
+            margin-bottom: 20px;
+        }
+        .feature .col-md-6, .feature .col-md-4 {
+            margin-bottom: 30px;
+        }
+        .cta {
+            background: #007bff;
+            color: white;
+            text-align: center;
+        }
+        .cta .btn-light {
+            background: white;
+            color: #007bff;
+        }
+        footer {
+            background: #f8f9fa;
+            padding: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="#">Market Mapper</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link btn btn-primary text-white" href="{{ url_for('register') }}">Get Started</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="hero">
+        <div class="container">
+            <h1>Stop Guessing, Start Knowing Your Market</h1>
+            <p>Introducing Market Mapper</p>
+            <a href="{{ url_for('register') }}" class="btn btn-lg btn-primary">Create an Account</a>
+        </div>
+    </div>
+
+    <div class="container feature">
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <h2>Tired of competitor analysis that just scratches the surface?</h2>
+                <p>Wish you had crystal-clear insights into what really drives customer decisions? Then get ready to ditch the spreadsheets and say hello to Market Mapper, the revolutionary competitive intelligence tool built to make you a market-mapping superstar.</p>
+                <p>Finally, a competitive analysis tool that goes beyond feature lists. Market Mapper dives deep into value drivers – the things your customers actually care about – so you can make data-driven decisions that propel your product to the top.</p>
+                <img src="/static/images/market-mapper-interface.jpg" alt="Market Mapper Interface" class="img-fluid my-4">
+            </div>
+        </div>
+     
+        <div class="row">
+            <div class="col-md-12 text-center">
+            <h2>Mapping Your Market in 6 Easy Steps</h2>
+            </div>
+            <div class="col-md-4 text-center">
+            <i class="fas fa-bullseye fa-3x mb-3" style="color: #4169E1;"></i>
+            <h3>1. Define Scope</h3>
+            <p>Specify your target market, product category, and audience.</p>
+            </div>
+            <div class="col-md-4 text-center">
+            <i class="fas fa-heart fa-3x mb-3" style="color: #4169E1;"></i>
+            <h3>2. Identify Drivers</h3>
+            <p>Determine core value drivers influencing customer decisions.</p>
+            </div>
+            <div class="col-md-4 text-center">
+            <i class="fas fa-balance-scale fa-3x mb-3" style="color: #4169E1;"></i>
+            <h3>3. Weight Drivers</h3>
+            <p>Use pairwise comparisons to find the relative importance of each driver.</p>
+            </div>
+            <div class="col-md-4 text-center">
+            <i class="fas fa-box fa-3x mb-3" style="color: #4169E1;"></i>
+            <h3>4. Add Products</h3>
+            <p>Include details like brand, price, and image for each product.</p>
+            </div>
+            <div class="col-md-4 text-center">
+            <i class="fas fa-star fa-3x mb-3" style="color: #4169E1;"></i>
+            <h3>5. Rate Performance</h3>
+            <p>Score products on each value driver to assess strengths and weaknesses.</p>
+            </div>
+            <div class="col-md-4 text-center">
+            <i class="fas fa-chart-pie fa-3x mb-3" style="color: #4169E1;"></i>
+            <h3>6. Visualize Map</h3>
+            <p>Generate a market map to identify price points and market gaps.</p>
+            </div>
+        </div>
+
+    <div class="container feature">
+        <div class="row">
+            <div class="col-md-12 hero" style="background: #28a745; color: white; padding: 50px 0; text-align: center;">
+                <div class="container">
+                    <h2>Empower Your Decisions with Actionable Insights</h2>
+                    <p>Market Mapper is designed to not just provide analysis, but to empower you to take positive action. Here are the kinds of benefits you can expect as a result of using our tool:</p>
+                </div>
+            </div>
+        </div>
+        <br>
+        <div class="row">
+            <div class="col-md-4 text-center">
+            <i class="fas fa-chart-line fa-3x mb-3" style="color: #28a745;"></i>
+            <h3>Pinpoint Optimal Price Points</h3>
+            <p>Know exactly where your product sits in the value-price matrix and identify opportunities to maximize profitability.</p>
+            </div>
+            <div class="col-md-4 text-center">
+            <i class="fas fa-search fa-3x mb-3" style="color: #28a745;"></i>
+            <h3>Uncover Market Gaps</h3>
+            <p>Discover underserved customer needs and carve out your competitive edge.</p>
+            </div>
+            <div class="col-md-4 text-center">
+            <i class="fas fa-trash-alt fa-3x mb-3" style="color: #28a745;"></i>
+            <h3>Phase Out Products Strategically</h3>
+            <p>Make data-driven decisions about which products to sunset, freeing up resources for your winners.</p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4 text-center">
+            <i class="fas fa-pen fa-3x mb-3" style="color: #28a745;"></i>
+            <h3>Craft Killer Marketing Copy</h3>
+            <p>Speak directly to what your customers value most, boosting engagement and conversions.</p>
+            </div>
+            <div class="col-md-4 text-center">
+            <i class="fas fa-tasks fa-3x mb-3" style="color: #28a745;"></i>
+            <h3>Prioritize Product Requirements</h3>
+            <p>Focus your development efforts on the features that will have the biggest impact.</p>
+            </div>
+            <div class="col-md-4 text-center">
+            <i class="fas fa-chess-king fa-3x mb-3" style="color: #28a745;"></i>
+            <h3>Create Winning Battle Cards</h3>
+            <p>Equip your sales team with the insights they need to crush the competition.</p>
+            </div>
+            <div class="col-md-4 text-center">
+            <i class="fas fa-lightbulb fa-3x mb-3" style="color: #28a745;"></i>
+            <h3>Improve Product Concept Evaluations</h3>
+            <p>Validate new product ideas with data-driven insights to ensure market fit and success.</p>
+            </div>
+        </div>
+     
+        </div>
+        </div>
+
+    <div class="cta">
+        <div class="container">
+
+            <h2>Ready to Ditch the Guesswork and Embrace Data-Driven Decisions?</h2>
+            <a href="{{ url_for('register') }}" class="btn btn-lg btn-light">Start Mapping Today!</a>
+            <p class="mt-3">Free Tier: Get started with 3 projects, 6 product comparisons, and workshop-based pairwise comparisons. Perfect for exploring the power of Market Mapper.</p>
+            <p>Premium Tier: Unleash the full potential with unlimited projects, products, and our premium survey comparison service. Get statistically significant data and unlock deeper market insights.</p>
+        </div>
+    </div>
+
+    <footer class="bg-light text-center py-4">
+        <p>&copy; 2023 Market Mapper. All rights reserved.</p>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+</body>
+</html>

@@ -1433,6 +1433,10 @@ def manage_marketing_message():
 
     return render_template('admin/marketing_message.html', message=message)
 
+@app.route('/landing')
+def landing():
+    return render_template('landing.html')
+
 ####################################Initiate App ############################################
 
 if __name__ == '__main__':
