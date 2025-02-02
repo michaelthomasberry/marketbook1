@@ -3,7 +3,7 @@
 {% block content %}
 <div class="container mt-4">
     <h1>Survey Results</h1>
-    <p>Number of submissions: {{ num_submissions }}</p>
+    <p class="text-center font-weight-bold text-info">Number of submissions: <span class="badge badge-pill badge-primary">{{ num_submissions }}</span></p>
     <ul>
         {% for label, weight in labels|zip(weights) %}
         <li>{{ label }}: {{ "%.1f" | format(weight) }}%</li>

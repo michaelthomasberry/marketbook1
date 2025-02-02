@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}Market Map{% endblock %}
 {% block content %}
-<h1>Market Map for {{ project.name }}</h1>
+
 
 <div class="container-fluid">
     <div class="row">
@@ -20,13 +20,23 @@
                     <a href="{{ url_for('manage_access', project_id=project.id) }}" class="list-group-item list-group-item-action">
                         <i class="fas fa-users-cog"></i> Manage Access
                     </a>
+                    <div class="list-group-item">
+                        <label for="projectSwitch"><i class="fas fa-project-diagram"></i> Switch Project</label>
+                        <select id="projectSwitch" class="form-control" onchange="switchProject()">
+                            {% for proj in projects %}
+                                <option value="{{ url_for('market_map', project_id=proj.id) }}" {% if proj.id == project.id %}selected{% endif %}>
+                                    {{ proj.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="col-md-9">
             {% if scatter_data %}
-                <h2>Market Map</h2>
+                <h2>Market Map for {{ project.name }}</h2>
                 <button class="btn btn-secondary mb-3" type="button" data-toggle="collapse" data-target="#filterOptions" aria-expanded="false" aria-controls="filterOptions">
                     <i class="fas fa-filter"></i> Filter Market Map
                 </button>
@@ -531,6 +541,11 @@
         const likesCountElement = document.getElementById(`likes-count-${commentId}`);
         let currentLikes = parseInt(likesCountElement.textContent) || 0;
         likesCountElement.textContent = `${currentLikes + 1} likes`;
+    }
+
+    function switchProject() {
+        const projectUrl = document.getElementById('projectSwitch').value;
+        window.location.href = projectUrl;
     }
 </script>
 

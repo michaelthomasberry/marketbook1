@@ -84,6 +84,10 @@ class Project(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     has_market_map = db.Column(db.Boolean, default=False)  # EXACTLY like this
     shared_users = db.relationship('User', secondary='project_user', backref='shared_projects')
+    value_drivers = db.relationship('ValueDriver', cascade='all, delete-orphan', backref='project')
+    products = db.relationship('Product', cascade='all, delete-orphan', backref='project')
+    comments = db.relationship('Comment', cascade='all, delete-orphan', backref='project')
+    comparison_results = db.relationship('ComparisonResult', cascade='all, delete-orphan', backref='project')
 
 # Association table for shared projects with pending status
 project_user = db.Table('project_user',
@@ -99,6 +103,7 @@ class ValueDriver(db.Model):
     measured_by = db.Column(db.String(100))
     weighting = db.Column(db.Float, default=0.0)  # Changed to Float for more precision
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
+    ratings = db.relationship('Rating', cascade='all, delete-orphan', backref='value_driver')
 
 #Product
 class Product(db.Model):
@@ -110,6 +115,7 @@ class Product(db.Model):
     image_filename = db.Column(db.String(255))
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
     price_source = db.Column(db.String(255))  # Add price_source field
+    ratings = db.relationship('Rating', cascade='all, delete-orphan', backref='product')
 
 def allowed_file(filename):
     """
@@ -124,9 +130,7 @@ class Rating(db.Model):
     value_driver_id = db.Column(db.Integer, db.ForeignKey('value_driver.id'), nullable=False)
     score = db.Column(db.Integer)
     date_rated = db.Column(db.DateTime, default=datetime.utcnow) #Add date rated to the database
-
-    product = db.relationship('Product', backref=db.backref('ratings', lazy=True))
-    value_driver = db.relationship('ValueDriver', backref=db.backref('ratings', lazy=True))
+    note = db.relationship('RatingNote', cascade='all, delete-orphan', backref='rating', uselist=False)
 
 # Comment Model
 class Comment(db.Model):
@@ -135,9 +139,8 @@ class Comment(db.Model):
     date = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
-
-    user = db.relationship('User', backref=db.backref('comments', lazy=True))
-    project = db.relationship('Project', backref=db.backref('comments', lazy=True))
+    replies = db.relationship('Reply', cascade='all, delete-orphan', backref='comment')
+    likes = db.relationship('Like', cascade='all, delete-orphan', backref='comment')
 
 class ComparisonResult(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -152,9 +155,6 @@ class Like(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     comment_id = db.Column(db.Integer, db.ForeignKey('comment.id'), nullable=False)
 
-    user = db.relationship('User', backref=db.backref('likes', lazy=True))
-    comment = db.relationship('Comment', backref=db.backref('likes', lazy=True))
-
 # Reply Model
 class Reply(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -163,16 +163,11 @@ class Reply(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     comment_id = db.Column(db.Integer, db.ForeignKey('comment.id'), nullable=False)
 
-    user = db.relationship('User', backref=db.backref('replies', lazy=True))
-    comment = db.relationship('Comment', backref=db.backref('replies', lazy=True))
-
 # Rating Note Model
 class RatingNote(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     rating_id = db.Column(db.Integer, db.ForeignKey('rating.id'), nullable=False)
     note = db.Column(db.Text, nullable=True)
-
-    rating = db.relationship('Rating', backref=db.backref('note', uselist=False))
 
 class MarketingMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -462,7 +457,9 @@ def edit_project(project_id):
 
     if request.method == 'POST':
         project.name = request.form.get('name')
-        project.description = request.form.get('description')
+        project.category = request.form.get('category')
+        project.target_customer = request.form.get('target_customer')
+        project.country = request.form.get('country')
         db.session.commit()
         flash('Project updated successfully!', 'success')
         return redirect(url_for('dashboard'))
@@ -999,6 +996,14 @@ def market_map(project_id):
     value_drivers = ValueDriver.query.filter_by(project_id=project_id).all()
     comments = Comment.query.filter_by(project_id=project_id).order_by(Comment.date.desc()).all()
 
+    # Fetch all projects for the current user and shared projects
+    user_projects = Project.query.filter_by(user_id=current_user.id).all()
+    shared_projects = Project.query.join(project_user).filter(
+        project_user.c.user_id == current_user.id,
+        project_user.c.status == 'accepted'
+    ).all()
+    projects = user_projects + shared_projects
+
     # Group products by brand
     products_by_brand = defaultdict(list)
     for product in products:
@@ -1042,7 +1047,7 @@ def market_map(project_id):
     product_names = [product.product_name for product in products]
     value_driver_names = [vd.value_driver for vd in value_drivers] # Get Value Driver Names
 
-    return render_template('market_map.html', project=project, scatter_data=scatter_data, bar_chart_data=bar_chart_data, value_driver_names=value_driver_names, product_names=product_names, brand_color_map=brand_color_map, comments=comments, value_drivers=value_drivers)
+    return render_template('market_map.html', project=project, scatter_data=scatter_data, bar_chart_data=bar_chart_data, value_driver_names=value_driver_names, product_names=product_names, brand_color_map=brand_color_map, comments=comments, value_drivers=value_drivers, projects=projects)
 
 @app.route('/manage/<int:project_id>/comment/<int:comment_id>/edit', methods=['POST'])
 @login_required
