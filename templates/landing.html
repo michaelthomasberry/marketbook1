@@ -111,6 +111,23 @@
             .feature h2, .cta h2 {
                 font-size: 1.7rem;
             }
+            .hero {
+    background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('{{ url_for('static', filename='Images/hero-bg-small.jpg') }}'); /* Default image */
+    background-size: cover;
+    background-position: center;
+}
+
+@media (min-width: 768px) { /* Example breakpoint */
+    .hero {
+        background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('{{ url_for('static', filename='Images/hero-bg-medium.jpg') }}');
+    }
+}
+
+@media (min-width: 1200px) { /* Example breakpoint */
+    .hero {
+        background-image: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('{{ url_for('static', filename='Images/hero-bg-large.jpg') }}');
+    }
+}
         }
     </style>
 </head>
