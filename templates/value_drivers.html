@@ -1,10 +1,129 @@
+<style>
+.scoring-guidance-button {
+    background-color: #f0f0f5; /* Very light gray background */
+    border: 1px solid #ddd;       /* Light gray border */
+    color: #333;                 /* Dark gray text */
+    padding: 0.3rem 0.6rem;       /* Adjust padding as needed */
+    border-radius: 5px;          /* Rounded corners */
+    transition: background-color 0.3s ease; /* Smooth hover effect */
+}
+
+.scoring-guidance-button:hover {
+    background-color: #e6e6fa; /* Light lavender on hover */
+    border-color: #ccc;
+}
+
+.scoring-guidance-button i {
+    margin-right: 0.3rem; /* Space between icon and text */
+}
+
+</style>
 {% extends 'base.html' %}
 {% block title %}Value Drivers{% endblock %}
 {% block content %}
+
+
 <div class="container">
-    <h1>Value Drivers for {{ project.name }}</h1>
+    <h1><i class="fas fa-heart fa-2x mb-2" style="color: #4169E1;"></i> Value Drivers for {{ project.name }}</h1>
     <h2>Identify What A {{ project.target_customer }} Values Most When Choosing {{ project.category}}  </h2>
     <p>Every great product starts with understanding what matters to your customers. What are the key factors that influence their buying decisions?</p>
+
+    <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h2><i class="fas fa-lightbulb"></i> Understanding Customer Value Drivers</h2>
+            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#valueDriverInstructions" aria-expanded="false" aria-controls="valueDriverInstructions">
+                <i class="fas fa-chevron-down"></i> <span id="instructionToggleText">Show Instructions</span>
+            </button>
+        </div>
+        <div class="collapse" id="valueDriverInstructions">
+            <div class="card-body">
+                <div class="alert alert-info" role="alert">
+                    <p class="lead">
+                        Value drivers are the <strong>key things</strong> your target customers care about most when choosing a product or service like yours. Think of them as the reasons a customer would say "Yes, I want this!"
+                    </p>
+    
+                    <h3>How to Identify Effective Value Drivers</h3>
+    
+                    <ol>
+                        <li>
+                            <strong>Focus on the Positive:</strong> Frame each value driver as a positive benefit or outcome your customer *desires*. Instead of "avoiding leaks," think "reliable and leak-free." Focus on what they *gain*, not what they *avoid*.
+                        </li>
+                        <li>
+                            <strong>Sticky Note Test:</strong> Imagine writing each value driver on a sticky note. Keep it concise and easy to understand at a glance. Short, powerful phrases are best.
+                        </li>
+                        <li>
+                            <strong>Customer Perspective:</strong> Put yourself in your customer's shoes. What are their needs, wants, and pain points related to your product/service category? What problems do they want to solve? What makes their lives easier or better?
+                        </li>
+                        <li>
+                            <strong>Examples:</strong>
+                            <ul>
+                                <li><strong>Functional:</strong> "Easy to use," "Saves time," "Durable," "High performance"</li>
+                                <li><strong>Emotional:</strong> "Peace of mind," "Feeling confident," "Enjoyable experience," "Sense of security"</li>
+                                <li><strong>Social:</strong> "Looks stylish," "Impresses my friends," "Helps me connect with others," "Makes me feel part of a community"</li>
+                            </ul>
+                        </li>
+                        <li>
+                            <button class="btn btn-sm btn-outline-info" type="button" data-bs-toggle="collapse" data-bs-target="#researchInstructions" aria-expanded="false" aria-controls="researchInstructions">  {# Button to toggle research info #}
+                                <i class="fas fa-search"></i> Research is Key - Show Methods
+                            </button>
+                            <div class="collapse mt-2" id="researchInstructions">
+                                <div class="card card-body">
+                                    <ul>
+                                        <li>
+                                            <strong>Surveys:</strong> Create short, focused surveys with questions about customer needs and priorities. Use online survey tools (like Google Forms, SurveyMonkey, or Typeform) to reach a wide audience. Ask questions like:
+                                            <ul>
+                                                <li>"What are the most important features you look for in a [product/service like yours]?"</li>
+                                                <li>"What are your biggest frustrations with existing [products/services]?"</li>
+                                                <li>"What would make your experience with [this type of product/service] ideal?"</li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            <strong>Interviews:</strong> Conduct one-on-one interviews with representative customers. Ask open-ended questions like:
+                                            <ul>
+                                                <li>"Tell me about your last experience with [a product/service in this category]."</li>
+                                                <li>"What are the biggest challenges you face related to [the problem your product/service solves]?"</li>
+                                                <li>"If you could wave a magic wand and have the perfect [product/service], what would it be like?"</li>
+                                            </ul>
+                                        </li>
+                                        <li>
+                                            <strong>Focus Groups:</strong> Gather small groups (6-10 people) of customers to discuss their needs and priorities in a moderated setting.
+                                        </li>
+                                        <li>
+                                            <strong>Analyze Existing Data:</strong> Look at customer reviews, feedback forms, and support tickets.
+                                        </li>
+                                        <li>
+                                            <strong>Competitor Analysis:</strong> See what your competitors are emphasizing in their marketing and product descriptions.
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </li>
+                    </ol>
+                </div>
+    
+                <p>
+                    Once you've identified your value drivers, add them below. Aim for 6-10 key drivers to keep your analysis focused.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    
+    <script>
+        const collapseButton = document.querySelector('[data-bs-target="#valueDriverInstructions"]');
+        const instructionToggleText = document.getElementById('instructionToggleText');
+    
+        collapseButton.addEventListener('click', () => {
+            const isCollapsed = !document.getElementById('valueDriverInstructions').classList.contains('show');
+            instructionToggleText.textContent = isCollapsed ? 'Hide Instructions' : 'Show Instructions';
+            collapseButton.querySelector('i').classList.toggle('fa-chevron-down', isCollapsed);
+            collapseButton.querySelector('i').classList.toggle('fa-chevron-up', !isCollapsed);
+    
+        });
+    </script>
+
+
+
 
     <div class="card mb-3">
         <div class="card-header">
@@ -29,11 +148,11 @@
                                         </form>
                                     </div>
                                 </div>
-                                <h5 class="card-title">{{ vd.value_driver }} <i class="fas fa-heart text-danger"></i></h5>
+                                <h5 class="card-title">{{ vd.value_driver }} <i class="fas fa-heart text-primary"></i></h5>
                                 <p class="card-text">
                                     <i class="fas fa-weight-hanging"></i> Importance Weighting %: {{ vd.weighting|round(1) }}
                                 </p></p>
-                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#scoringModal{{ vd.id }}">
+                                <button type="button" class="btn btn-sm scoring-guidance-button" data-bs-toggle="modal" data-bs-target="#scoringModal{{ vd.id }}">
                                     <i class="fas fa-info-circle"></i> Scoring Guidance
                                 </button>
                             </div>
@@ -96,8 +215,8 @@
         </div>
         <div class="card-body">
             <form method="POST">
-                <input type="text" name="value_driver" placeholder="A {{ project.target_customer }} Values:" required class="form-control mb-2">
-                <textarea name="measured_by" placeholder="Scoring Guidance 0-5 (optional)" class="form-control mb-2" rows="3"></textarea>
+                <input type="text" name="value_driver" placeholder="My customer really values..." required class="form-control mb-2">
+              
                 <button type="submit" name="add_value_driver" class="btn btn-primary"><i class="fas fa-plus"></i> Add Value Driver</button>
             </form>
         </div>

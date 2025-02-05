@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}Product Comparison{% endblock %}
 {% block content %}
-<h1 class="text-center">Product/Service Comparison for {{ project.name }}</h1>
+<h1 class="text-center"><i class="fas fa-box fa-2x mb-3" style="color: #4169E1;"></i> Product/Service Comparison for {{ project.name }}</h1>
 
 <a href="{{ url_for('value_drivers', project_id=project.id) }}" class="btn btn-secondary mb-3"><i class="fas fa-arrow-left"></i> Return to Value Drivers</a>
 
