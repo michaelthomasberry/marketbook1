@@ -139,6 +139,7 @@ class Comment(db.Model):
     date = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
+    user = db.relationship('User', backref=db.backref('comments', lazy=True))  # Add this line!
     replies = db.relationship('Reply', cascade='all, delete-orphan', backref='comment')
     likes = db.relationship('Like', cascade='all, delete-orphan', backref='comment')
 
@@ -994,7 +995,7 @@ def market_map(project_id):
 
     products = Product.query.filter_by(project_id=project_id).all()
     value_drivers = ValueDriver.query.filter_by(project_id=project_id).all()
-    comments = Comment.query.filter_by(project_id=project_id).order_by(Comment.date.desc()).all()
+    comments = Comment.query.filter_by(project_id=project_id).order_by(Comment.date.desc()).options(joinedload(Comment.user)).all()
 
     # Fetch all projects for the current user and shared projects
     user_projects = Project.query.filter_by(user_id=current_user.id).all()
@@ -1436,6 +1437,14 @@ def manage_marketing_message():
 @app.route('/landing')
 def landing():
     return render_template('landing.html')
+
+@app.route('/terms')
+def terms():
+    return render_template('termsandconditions.html')
+
+@app.route('/termsofuse')
+def termsofuse():
+    return render_template('termsofuse.html')
 
 ####################################Initiate App ############################################
 
