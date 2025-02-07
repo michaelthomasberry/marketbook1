@@ -155,6 +155,9 @@
                                 <button type="button" class="btn btn-sm scoring-guidance-button" data-bs-toggle="modal" data-bs-target="#scoringModal{{ vd.id }}">
                                     <i class="fas fa-info-circle"></i> Scoring Guidance
                                 </button>
+                                <button type="button" class="btn btn-sm scoring-guidance-button" data-bs-toggle="modal" data-bs-target="#technicalModal{{ vd.id }}">
+                                    <i class="fas fa-cogs"></i> Technical Attributes
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -279,6 +282,30 @@
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                             <button type="submit" name="edit_measured_by" class="btn btn-primary">Save changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+    {% for vd in value_drivers %}
+    <div class="modal fade" id="technicalModal{{ vd.id }}" tabindex="-1" aria-labelledby="technicalModalLabel{{ vd.id }}" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="technicalModalLabel{{ vd.id }}">Technical Attributes for {{ vd.value_driver }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Please input the technical attributes that can be used as a proxy to compare how products deliver against this value driver.</p>
+                    <form method="POST">
+                        <input type="hidden" name="edit_technical_attributes_id" value="{{ vd.id }}">
+                        <textarea name="edit_technical_attributes" class="form-control" rows="5">{{ vd.technical_attributes }}</textarea>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" name="edit_technical_attributes" class="btn btn-primary">Save changes</button>
                         </div>
                     </form>
                 </div>

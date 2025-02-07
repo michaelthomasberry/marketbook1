@@ -14,7 +14,8 @@
     <div class="card mb-3">
         <div class="card-header">{{ vd.value_driver }} (Weighting: {{ "{:.1f}".format(vd.weighting) }}%)</div>
         <div class="card-body">
-            <p>{{ vd.measured_by }}</p>
+            <p><strong>Technical Attributes To Review:</strong> {{ vd.technical_attributes or '' }}</p>
+            <p><strong>Scoring Guidance:</strong> {{ vd.measured_by }}</p>
             <div class="form-group">
                 <label for="rating_{{ vd.id }}">Rating (0-5):</label>
                 <input

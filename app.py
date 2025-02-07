@@ -101,6 +101,7 @@ class ValueDriver(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     value_driver = db.Column(db.String(100), nullable=False)
     measured_by = db.Column(db.String(100))
+    technical_attributes = db.Column(db.Text, nullable=True)  # Add technical_attributes field
     weighting = db.Column(db.Float, default=0.0)  # Changed to Float for more precision
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
     ratings = db.relationship('Rating', cascade='all, delete-orphan', backref='value_driver')
@@ -563,6 +564,12 @@ def value_drivers(project_id):
             measured_by_to_edit.measured_by = request.form.get('edit_measured_by')
             db.session.commit()
             flash('Measured By updated successfully!', 'success')
+        elif 'edit_technical_attributes' in request.form:  # Handle technical attributes
+            technical_attributes_id = request.form.get('edit_technical_attributes_id')
+            technical_attributes_to_edit = ValueDriver.query.get_or_404(technical_attributes_id)
+            technical_attributes_to_edit.technical_attributes = request.form.get('edit_technical_attributes')
+            db.session.commit()
+            flash('Technical Attributes updated successfully!', 'success')
         elif 'delete_value_driver' in request.form:
             value_driver_id = request.form.get('delete_value_driver_id')
             value_driver_to_delete = ValueDriver.query.get_or_404(value_driver_id)
