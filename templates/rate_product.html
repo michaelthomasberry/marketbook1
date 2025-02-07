@@ -15,6 +15,10 @@
         <div class="card-header">{{ vd.value_driver }} (Weighting: {{ "{:.1f}".format(vd.weighting) }}%)</div>
         <div class="card-body">
             <p><strong>Technical Attributes To Review:</strong> {{ vd.technical_attributes or '' }}</p>
+            <div class="form-group">
+              <label for="note_{{ vd.id }}">Technical Attribute Value:</label>
+              <textarea class="form-control" id="note_{{ vd.id }}" name="note_{{ vd.id }}" rows="2">{{ notes.get(vd.id, '') }}</textarea>
+          </div>
             <p><strong>Scoring Guidance:</strong> {{ vd.measured_by }}</p>
             <div class="form-group">
                 <label for="rating_{{ vd.id }}">Rating (0-5):</label>
@@ -31,6 +35,7 @@
                 />
                 <output class="rating-value" for="rating_{{ vd.id }}">{{ ratings.get(vd.id, 0) }}</output> {# Set initial output value #}
             </div>
+            
         </div>
     </div>
     {% endfor %}
