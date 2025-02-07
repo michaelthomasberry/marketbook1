@@ -1,0 +1,53 @@
+
+{% extends 'base.html' %}
+{% block title %}Price Movement Indicators{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h1>Price Movement Indicators</h1>
+    <form method="GET" class="mb-4">
+        <div class="form-row">
+            <div class="col-md-4 mb-3">
+                <label for="brand">Filter by Brand</label>
+                <input type="text" class="form-control" id="brand" name="brand" value="{{ brand_filter }}">
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="product_name">Filter by Product Name</label>
+                <input type="text" class="form-control" id="product_name" name="product_name" value="{{ product_name_filter }}">
+            </div>
+            <div class="col-md-4 mb-3 align-self-end">
+                <button type="submit" class="btn btn-primary">Filter</button>
+            </div>
+        </div>
+    </form>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Brand</th>
+                <th>Product Name</th>
+                <th>Old Price</th>
+                <th>New Price</th>
+                <th>Change (%)</th>
+                <th>Date Changed</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product, price_history in products_with_latest_price_change %}
+            <tr>
+                <td>{{ product.brand_name }}</td>
+                <td>{{ product.product_name }}</td>
+                <td>{{ price_history.old_price }}</td>
+                <td>{{ price_history.new_price }}</td>
+                <td>
+                    {% if price_history.new_price > price_history.old_price %}
+                    <span style="color: green;">{{ ((price_history.new_price - price_history.old_price) / price_history.old_price * 100) | round(2) }}%</span>
+                    {% else %}
+                    <span style="color: red;">{{ ((price_history.new_price - price_history.old_price) / price_history.old_price * 100) | round(2) }}%</span>
+                    {% endif %}
+                </td>
+                <td>{{ price_history.date_changed.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1484,6 +1484,51 @@ def terms():
 def termsofuse():
     return render_template('termsofuse.html')
 
+# Delete price history entry
+@app.route('/manage/<int:project_id>/product/<int:product_id>/price_history/<int:history_id>/delete', methods=['POST'])
+@login_required
+def delete_price_history(project_id, product_id, history_id):
+    project = Project.query.get_or_404(project_id)
+    if project.user_id != current_user.id and current_user not in project.shared_users:
+        flash('You are not authorized to manage this project.', 'danger')
+        return redirect(url_for('dashboard'))
+
+    price_history_entry = PriceHistory.query.get_or_404(history_id)
+    if price_history_entry.product_id != product_id:
+        flash('Price history entry not found for this product.', 'danger')
+        return redirect(url_for('price_history', project_id=project_id, product_id=product_id))
+
+    db.session.delete(price_history_entry)
+    db.session.commit()
+    flash('Price history entry deleted successfully!', 'success')
+    return redirect(url_for('price_history', project_id=project_id, product_id=product_id))
+
+# Price Movement Indicators
+@app.route('/price_movement_indicators', methods=['GET', 'POST'])
+@login_required
+def price_movement_indicators():
+    brand_filter = request.args.get('brand')
+    product_name_filter = request.args.get('product_name')
+
+    subquery = db.session.query(
+        PriceHistory.product_id,
+        db.func.max(PriceHistory.date_changed).label('latest_date')
+    ).group_by(PriceHistory.product_id).subquery()
+
+    query = db.session.query(Product, PriceHistory).join(
+        subquery,
+        (PriceHistory.product_id == subquery.c.product_id) & (PriceHistory.date_changed == subquery.c.latest_date)
+    ).join(Product, Product.id == PriceHistory.product_id)
+
+    if brand_filter:
+        query = query.filter(Product.brand_name.ilike(f'%{brand_filter}%'))
+    if product_name_filter:
+        query = query.filter(Product.product_name.ilike(f'%{product_name_filter}%'))
+
+    products_with_latest_price_change = query.all()
+
+    return render_template('price_movement_indicators.html', products_with_latest_price_change=products_with_latest_price_change, brand_filter=brand_filter, product_name_filter=product_name_filter)
+
 ####################################Initiate App ############################################
 
 if __name__ == '__main__':

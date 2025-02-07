@@ -7,19 +7,25 @@
     <table class="table table-striped">
         <thead>
             <tr>
-                <th>Date Changed</th>
-                <th>Old Price</th>
-                <th>New Price</th>
-                <th>Change (%)</th>
+            <th>Date Changed</th>
+            <th>Old Price</th>
+            <th>New Price</th>
+            <th>Change (%)</th>
             </tr>
         </thead>
         <tbody>
             {% for history in price_history %}
             <tr>
-                <td>{{ history.date_changed.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-                <td>{{ history.old_price }}</td>
-                <td>{{ history.new_price }}</td>
-                <td>{{ ((history.new_price - history.old_price) / history.old_price * 100) | round(2) }}%</td>
+            <td>{{ history.date_changed.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            <td>{{ history.old_price }}</td>
+            <td>{{ history.new_price }}</td>
+            <td>
+                {% if history.new_price > history.old_price %}
+                <span style="color: green;">{{ ((history.new_price - history.old_price) / history.old_price * 100) | round(2) }}%</span>
+                {% else %}
+                <span style="color: red;">{{ ((history.new_price - history.old_price) / history.old_price * 100) | round(2) }}%</span>
+                {% endif %}
+            </td>
             </tr>
             {% endfor %}
         </tbody>
