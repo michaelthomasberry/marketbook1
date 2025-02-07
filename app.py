@@ -118,6 +118,14 @@ class Product(db.Model):
     price_source = db.Column(db.String(255))  # Add price_source field
     ratings = db.relationship('Rating', cascade='all, delete-orphan', backref='product')
 
+# Price History
+class PriceHistory(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    old_price = db.Column(db.Float, nullable=False)
+    new_price = db.Column(db.Float, nullable=False)
+    date_changed = db.Column(db.DateTime, default=datetime.utcnow)
+
 def allowed_file(filename):
     """
     Checks if the filename extension is allowed.
@@ -814,10 +822,20 @@ def edit_product(project_id, product_id_to_edit):
         product_to_edit.product_name = request.form.get('product_name')
         product_to_edit.currency = request.form.get('currency') #Get the currency from the form
         try:
-            product_to_edit.price = float(request.form.get('price')) if request.form.get('price') else None
+            new_price = float(request.form.get('price')) if request.form.get('price') else None
         except ValueError:
             flash('Invalid price format.', 'danger')
             return redirect(url_for('edit_product', project_id=project_id, product_id_to_edit=product_id_to_edit))
+
+        # Save price history if price has changed
+        if new_price is not None and new_price != product_to_edit.price:
+            price_history = PriceHistory(
+                product_id=product_to_edit.id,
+                old_price=product_to_edit.price,
+                new_price=new_price
+            )
+            db.session.add(price_history)
+            product_to_edit.price = new_price
 
         image = request.files.get('image')
         if image:
@@ -843,6 +861,19 @@ def edit_product(project_id, product_id_to_edit):
 
     return render_template('edit_product.html', project=project, product=product_to_edit)
 
+# View price history
+@app.route('/manage/<int:project_id>/product/<int:product_id>/price_history')
+@login_required
+def price_history(project_id, product_id):
+    project = Project.query.get_or_404(project_id)
+    if project.user_id != current_user.id and current_user not in project.shared_users:
+        flash('You are not authorized to view this project.', 'danger')
+        return redirect(url_for('dashboard'))
+
+    product = Product.query.get_or_404(product_id)
+    price_history = PriceHistory.query.filter_by(product_id=product_id).order_by(PriceHistory.date_changed.desc()).all()
+
+    return render_template('price_history.html', project=project, product=product, price_history=price_history)
 
 # delete product
 @app.route('/manage/<int:project_id>/product/<int:product_id_to_delete>/delete', methods=['POST'])

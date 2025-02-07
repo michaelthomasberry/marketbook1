@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Price History{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h1>Price History for {{ product.product_name }}</h1>
+    <a href="{{ url_for('product_comparison', project_id=project.id) }}" class="btn btn-secondary mb-3"><i class="fas fa-arrow-left"></i> Back to Product Comparison</a>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Date Changed</th>
+                <th>Old Price</th>
+                <th>New Price</th>
+                <th>Change (%)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for history in price_history %}
+            <tr>
+                <td>{{ history.date_changed.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>{{ history.old_price }}</td>
+                <td>{{ history.new_price }}</td>
+                <td>{{ ((history.new_price - history.old_price) / history.old_price * 100) | round(2) }}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

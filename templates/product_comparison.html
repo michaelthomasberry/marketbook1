@@ -133,6 +133,7 @@
                         </button>
                         <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton{{ product.id }}">
                             <a href="{{ url_for('edit_product', project_id=project.id, product_id_to_edit=product.id) }}" class="dropdown-item" title="Edit"><i class="fas fa-edit"></i> Edit</a>
+                            <a class="dropdown-item" href="{{ url_for('price_history', project_id=project.id, product_id=product.id) }}"><i class="fas fa-history"></i> Pricing History</a>
                             <form method="POST" style="display: inline;" action="{{ url_for('delete_product', project_id=project.id, product_id_to_delete=product.id) }}">
                                 <button type="submit" class="dropdown-item" title="Delete" onclick="return confirm('Are you sure?')"><i class="fas fa-trash-alt"></i> Delete</button>
                             </form>
