@@ -1,18 +1,28 @@
-
 {% extends 'base.html' %}
 {% block title %}Price Movement Indicators{% endblock %}
 {% block content %}
 <div class="container mt-4">
     <h1>Price Movement Indicators</h1>
-    <form method="GET" class="mb-4">
+    <form method="GET" action="{{ url_for('price_movement_indicators', project_id=project_id) }}" class="mb-4">
+        <input type="hidden" name="project_id" value="{{ project_id }}">
         <div class="form-row">
             <div class="col-md-4 mb-3">
                 <label for="brand">Filter by Brand</label>
-                <input type="text" class="form-control" id="brand" name="brand" value="{{ brand_filter }}">
+                <select class="form-control" id="brand" name="brand" multiple>
+                    <option value="">All Brands</option>
+                    {% for brand in brands %}
+                    <option value="{{ brand }}" {% if brand in brand_filter %}selected{% endif %}>{{ brand }}</option>
+                    {% endfor %}
+                </select>
             </div>
             <div class="col-md-4 mb-3">
                 <label for="product_name">Filter by Product Name</label>
-                <input type="text" class="form-control" id="product_name" name="product_name" value="{{ product_name_filter }}">
+                <select class="form-control" id="product_name" name="product_name" multiple>
+                    <option value="">All Products</option>
+                    {% for product_name in product_names %}
+                    <option value="{{ product_name }}" {% if product_name in product_name_filter %}selected{% endif %}>{{ product_name }}</option>
+                    {% endfor %}
+                </select>
             </div>
             <div class="col-md-4 mb-3 align-self-end">
                 <button type="submit" class="btn btn-primary">Filter</button>

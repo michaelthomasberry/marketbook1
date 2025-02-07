@@ -20,7 +20,7 @@
                     <a href="{{ url_for('manage_access', project_id=project.id) }}" class="list-group-item list-group-item-action">
                         <i class="fas fa-users-cog"></i> Manage Access
                     </a>
-                    <a href="{{ url_for('price_movement_indicators') }}" class="list-group-item list-group-item-action">
+                    <a href="{{ url_for('price_movement_indicators', project_id=project.id) }}" class="list-group-item list-group-item-action">
                         <i class="fas fa-chart-line"></i> Price Movement Indicators
                     </a>
                     <div class="list-group-item">

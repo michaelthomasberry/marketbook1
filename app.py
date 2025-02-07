@@ -1504,11 +1504,11 @@ def delete_price_history(project_id, product_id, history_id):
     return redirect(url_for('price_history', project_id=project_id, product_id=product_id))
 
 # Price Movement Indicators
-@app.route('/price_movement_indicators', methods=['GET', 'POST'])
+@app.route('/price_movement_indicators/<int:project_id>', methods=['GET', 'POST'])
 @login_required
-def price_movement_indicators():
-    brand_filter = request.args.get('brand')
-    product_name_filter = request.args.get('product_name')
+def price_movement_indicators(project_id):
+    brand_filter = request.args.getlist('brand')
+    product_name_filter = request.args.getlist('product_name')
 
     subquery = db.session.query(
         PriceHistory.product_id,
@@ -1518,16 +1518,26 @@ def price_movement_indicators():
     query = db.session.query(Product, PriceHistory).join(
         subquery,
         (PriceHistory.product_id == subquery.c.product_id) & (PriceHistory.date_changed == subquery.c.latest_date)
-    ).join(Product, Product.id == PriceHistory.product_id)
+    ).join(Product, Product.id == PriceHistory.product_id).filter(Product.project_id == project_id)
 
     if brand_filter:
-        query = query.filter(Product.brand_name.ilike(f'%{brand_filter}%'))
+        query = query.filter(Product.brand_name.in_(brand_filter))
     if product_name_filter:
-        query = query.filter(Product.product_name.ilike(f'%{product_name_filter}%'))
+        query = query.filter(Product.product_name.in_(product_name_filter))
 
     products_with_latest_price_change = query.all()
 
-    return render_template('price_movement_indicators.html', products_with_latest_price_change=products_with_latest_price_change, brand_filter=brand_filter, product_name_filter=product_name_filter)
+    # Get distinct brands and product names for the dropdown filters within the selected project
+    brands = db.session.query(Product.brand_name).filter(Product.project_id == project_id).distinct().all()
+    product_names = db.session.query(Product.product_name).filter(Product.project_id == project_id).distinct().all()
+
+    return render_template('price_movement_indicators.html', 
+                           products_with_latest_price_change=products_with_latest_price_change, 
+                           brand_filter=brand_filter, 
+                           product_name_filter=product_name_filter,
+                           brands=[b[0] for b in brands],
+                           product_names=[p[0] for p in product_names],
+                           project_id=project_id)
 
 ####################################Initiate App ############################################
 
