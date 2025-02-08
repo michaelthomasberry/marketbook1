@@ -10,6 +10,10 @@
             <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard()">Copy</button>
         </div>
     </div>
+    <div class="text-center">
+        <p>Or scan the QR code below:</p>
+        <img id="qrCode" src="" alt="QR Code" />
+    </div>
     <a href="{{ url_for('survey_results', project_id=project.id) }}" class="btn btn-primary mt-3">View Survey Results</a>
 </div>
 
@@ -20,5 +24,11 @@ function copyToClipboard() {
     document.execCommand('copy');
     alert('Copied to clipboard');
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    var qrCodeUrl = "{{ url_for('survey_comparison', project_id=project.id, _external=True) }}";
+    var qrCodeImg = document.getElementById('qrCode');
+    qrCodeImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' + encodeURIComponent(qrCodeUrl);
+});
 </script>
 {% endblock %}

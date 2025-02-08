@@ -18,6 +18,7 @@ from flask_migrate import Migrate
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_admin import AdminIndexView, expose
+import stripe
 
 #################Configurations#####################
 app = Flask(__name__)
@@ -32,13 +33,16 @@ migrate = Migrate(app, db)
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'  # Replace with your mail server
 app.config['MAIL_PORT'] = 587  # Or 465 for SSL
 app.config['MAIL_USE_TLS'] = True  # Or False for SSL
-app.config['MAIL_USERNAME'] = 'your_email@gmail.com'  # Replace with your email
-app.config['MAIL_PASSWORD'] = 'your_email_password'  # Replace with your email password or app password
-app.config['MAIL_DEFAULT_SENDER'] = 'your_email@gmail.com'
+app.config['MAIL_USERNAME'] = 'michaelthomasberry1@gmail.com'  # Replace with your email
+app.config['MAIL_PASSWORD'] = 'nyfs fkzj ytew hysz'  # Replace with your email password or app password
+app.config['MAIL_DEFAULT_SENDER'] = 'michaelthomasberry1@gmail.com'
 mail = Mail(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+
+# Stripe Configuration
+stripe.api_key = 'your_stripe_secret_key'   ################### To do ##########################
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -1543,6 +1547,35 @@ def price_movement_indicators(project_id):
                            brands=[b[0] for b in brands],
                            product_names=[p[0] for p in product_names],
                            project_id=project_id)
+
+@app.route('/stripe_webhook', methods=['POST'])
+def stripe_webhook():
+    payload = request.get_data(as_text=True)
+    sig_header = request.headers.get('Stripe-Signature')    
+    endpoint_secret = 'your_stripe_endpoint_secret'################### to do  ########################
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, endpoint_secret
+        )
+    except ValueError as e:
+        # Invalid payload
+        return jsonify(success=False), 400
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature
+        return jsonify(success=False), 400
+
+    # Handle the event
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        customer_email = session['customer_details']['email']
+        user = User.query.filter_by(email=customer_email).first()
+        if user:
+            user.role = 'premium'
+            db.session.commit()
+            flash('Congratulations! You have been upgraded to a premium account.', 'success')
+
+    return jsonify(success=True)
 
 ####################################Initiate App ############################################
 
