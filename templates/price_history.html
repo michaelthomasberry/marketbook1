@@ -7,25 +7,31 @@
     <table class="table table-striped">
         <thead>
             <tr>
-            <th>Date Changed</th>
-            <th>Old Price</th>
-            <th>New Price</th>
-            <th>Change (%)</th>
+                <th>Date Changed</th>
+                <th>Old Price</th>
+                <th>New Price</th>
+                <th>Change (%)</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
             {% for history in price_history %}
             <tr>
-            <td>{{ history.date_changed.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-            <td>{{ history.old_price }}</td>
-            <td>{{ history.new_price }}</td>
-            <td>
-                {% if history.new_price > history.old_price %}
-                <span style="color: green;">{{ ((history.new_price - history.old_price) / history.old_price * 100) | round(2) }}%</span>
-                {% else %}
-                <span style="color: red;">{{ ((history.new_price - history.old_price) / history.old_price * 100) | round(2) }}%</span>
-                {% endif %}
-            </td>
+                <td>{{ history.date_changed.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                <td>{{ history.old_price }}</td>
+                <td>{{ history.new_price }}</td>
+                <td>
+                    {% if history.new_price > history.old_price %}
+                    <span style="color: green;">{{ ((history.new_price - history.old_price) / history.old_price * 100) | round(2) }}%</span>
+                    {% else %}
+                    <span style="color: red;">{{ ((history.new_price - history.old_price) / history.old_price * 100) | round(2) }}%</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <form method="POST" action="{{ url_for('delete_price_history', project_id=project.id, product_id=product.id, history_id=history.id) }}" style="display: inline;">
+                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this entry?')"><i class="fas fa-trash-alt"></i> Delete</button>
+                    </form>
+                </td>
             </tr>
             {% endfor %}
         </tbody>

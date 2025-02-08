@@ -12,7 +12,7 @@
                 </div>
                 <div class="list-group list-group-flush">
                     <a href="{{ url_for('value_drivers', project_id=project.id) }}" class="list-group-item list-group-item-action">
-                        <i class="fas fa-sliders-h"></i> Manage Value Drivers
+                        <i class="fas fa-heart"></i> Manage Value Drivers
                     </a>
                     <a href="{{ url_for('product_comparison', project_id=project.id) }}" class="list-group-item list-group-item-action">
                         <i class="fas fa-box"></i> Manage Products
@@ -217,7 +217,7 @@
                 </script>
             {% endif %}
             {% if bar_chart_data and product_names and value_driver_names %}
-                <h2>Value Drivers</h2>
+                <h2>Value Comparison</h2>
                 <button class="btn btn-secondary mb-3" type="button" data-toggle="collapse" data-target="#filterValueDrivers" aria-expanded="false" aria-controls="filterValueDrivers">
                     <i class="fas fa-filter"></i> Filter Value Drivers
                 </button>
@@ -246,11 +246,19 @@
                     </div>
                 </div>
                 <div class="row justify-content-center">
-                    {% for vd_name in value_driver_names %}
+                    {% for vd_name, vd in value_driver_names|zip(value_drivers)|sort(attribute='1.weighting', reverse=True) %}
                         <div class="col-md-6 mb-4 border p-3">
                             <h3>{{ vd_name }}</h3>
-                            <p>Value Weighting: {{ "%.1f"|format(value_drivers[loop.index0].weighting) }}%</p>
-                            <p>Measured By: {{ value_drivers[loop.index0].measured_by }}</p>
+                            <p>Value Weighting: {{ "%.1f"|format(vd.weighting) }}%</p>
+                            <p>Technical Attribute(s): {{ vd.technical_attributes }}</p>
+                            <button class="btn btn-link p-0" type="button" data-toggle="collapse" data-target="#measuredBy{{ loop.index }}" aria-expanded="false" aria-controls="measuredBy{{ loop.index }}">
+                                <i class="fas fa-info-circle"></i> Show Scoring Guidance
+                            </button>
+                            <div class="collapse mt-2" id="measuredBy{{ loop.index }}">
+                                <div class="card card-body">
+                                    <p><strong>Measured By:</strong> {{ vd.measured_by }}</p>
+                                </div>
+                            </div>
                             <canvas id="barChart{{ loop.index }}"></canvas>
                         </div>
                     {% endfor %}

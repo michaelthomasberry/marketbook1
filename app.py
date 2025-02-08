@@ -618,7 +618,7 @@ def compare_value_drivers(project_id):
     project = Project.query.get_or_404(project_id)
     if project.user_id != current_user.id and current_user not in project.shared_users:
         flash('You are not authorized to manage this project.', 'danger')
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('value_drivers', project_id=project_id))
 
     value_drivers = ValueDriver.query.filter_by(project_id=project_id).all()
     num_drivers = len(value_drivers)
@@ -1520,16 +1520,21 @@ def price_movement_indicators(project_id):
         (PriceHistory.product_id == subquery.c.product_id) & (PriceHistory.date_changed == subquery.c.latest_date)
     ).join(Product, Product.id == PriceHistory.product_id).filter(Product.project_id == project_id)
 
-    if brand_filter:
+    if brand_filter and '' not in brand_filter:
         query = query.filter(Product.brand_name.in_(brand_filter))
-    if product_name_filter:
+    if product_name_filter and '' not in product_name_filter:
         query = query.filter(Product.product_name.in_(product_name_filter))
 
     products_with_latest_price_change = query.all()
 
-    # Get distinct brands and product names for the dropdown filters within the selected project
+    # Get distinct brands for the dropdown filters within the selected project
     brands = db.session.query(Product.brand_name).filter(Product.project_id == project_id).distinct().all()
-    product_names = db.session.query(Product.product_name).filter(Product.project_id == project_id).distinct().all()
+
+    # Get distinct product names for the dropdown filters within the selected project and selected brands
+    product_names_query = db.session.query(Product.product_name).filter(Product.project_id == project_id)
+    if brand_filter and '' not in brand_filter:
+        product_names_query = product_names_query.filter(Product.brand_name.in_(brand_filter))
+    product_names = product_names_query.distinct().all()
 
     return render_template('price_movement_indicators.html', 
                            products_with_latest_price_change=products_with_latest_price_change, 
