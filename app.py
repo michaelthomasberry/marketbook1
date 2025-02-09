@@ -19,6 +19,7 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_admin import AdminIndexView, expose
 import stripe
+from flask_wtf import CSRFProtect  # Import CSRFProtect
 
 #################Configurations#####################
 app = Flask(__name__)
@@ -28,6 +29,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'  # Or your database 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+
+# Initialize CSRF protection
+csrf = CSRFProtect(app)
 
 # Mail Configuration
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'  # Replace with your mail server
@@ -188,6 +192,11 @@ class MarketingMessage(db.Model):
     content = db.Column(db.Text, nullable=False)
     is_active = db.Column(db.Boolean, default=False)
 
+class CallToActionClick(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    button_name = db.Column(db.String(50), nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+
 class MyAdminIndexView(AdminIndexView):
     @expose('/')
     @login_required
@@ -198,7 +207,9 @@ class MyAdminIndexView(AdminIndexView):
         user_count = User.query.count()
         roles = db.session.query(User.role, db.func.count(User.role)).group_by(User.role).all()
         role_data = {role: count for role, count in roles}
-        return self.render('admin/index.html', user=current_user, user_count=user_count, role_data=role_data)
+        cta_clicks = db.session.query(CallToActionClick.button_name, db.func.count(CallToActionClick.id)).group_by(CallToActionClick.button_name).all()
+        cta_click_data = {button_name: count for button_name, count in cta_clicks}
+        return self.render('admin/index.html', user=current_user, user_count=user_count, role_data=role_data, cta_click_data=cta_click_data)
 
 class SecureModelView(ModelView):
     def is_accessible(self):
@@ -220,6 +231,7 @@ admin.add_view(SecureModelView(Like, db.session))
 admin.add_view(SecureModelView(RatingNote, db.session))
 admin.add_view(SecureModelView(ComparisonResult, db.session))
 admin.add_view(SecureModelView(MarketingMessage, db.session))
+admin.add_view(SecureModelView(CallToActionClick, db.session))
 
 ############################## Routes  #######################################################################
 ###########Routes For Logging a user in ##############
@@ -1616,6 +1628,45 @@ def stripe_webhook():
             flash('Congratulations! You have been upgraded to a premium account.', 'success')
 
     return jsonify(success=True)
+
+@app.route('/track_click', methods=['POST'])
+@csrf.exempt  # Exempt CSRF protection for this route
+def track_click():
+    button_name = request.json.get('button_name')
+    if button_name:
+        click = CallToActionClick(button_name=button_name)
+        db.session.add(click)
+        db.session.commit()
+        return jsonify(success=True)
+    return jsonify(success=False), 400
+
+@app.route('/admin/click_data')
+@login_required
+def click_data():
+    if current_user.role != 'admin':
+        return jsonify(success=False), 403
+
+    # Fetch click data grouped by day, week, and month
+    daily_clicks = db.session.query(
+        db.func.date(CallToActionClick.timestamp).label('date'),
+        db.func.count(CallToActionClick.id).label('count')
+    ).group_by(db.func.date(CallToActionClick.timestamp)).all()
+
+    weekly_clicks = db.session.query(
+        db.func.strftime('%Y-%W', CallToActionClick.timestamp).label('week'),
+        db.func.count(CallToActionClick.id).label('count')
+    ).group_by(db.func.strftime('%Y-%W', CallToActionClick.timestamp)).all()
+
+    monthly_clicks = db.session.query(
+        db.func.strftime('%Y-%m', CallToActionClick.timestamp).label('month'),
+        db.func.count(CallToActionClick.id).label('count')
+    ).group_by(db.func.strftime('%Y-%m', CallToActionClick.timestamp)).all()
+
+    return jsonify({
+        'daily': [{'date': str(date), 'count': count} for date, count in daily_clicks],
+        'weekly': [{'week': week, 'count': count} for week, count in weekly_clicks],
+        'monthly': [{'month': month, 'count': count} for month, count in monthly_clicks]
+    })
 
 ####################################Initiate App ############################################
 
