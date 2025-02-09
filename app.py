@@ -266,6 +266,12 @@ def register():
         new_user.set_password(password)
         db.session.add(new_user)
         db.session.commit()
+
+        # Send welcome email
+        msg = Message('Welcome to Market Mapper', recipients=[email])
+        msg.body = f"Hello {username},\n\nWelcome to Market Mapper! We're excited to have you on board.\n\nBest regards,\nThe Market Mapper Team"
+        mail.send(msg)
+
         flash('Account created successfully. Please log in.', 'success')
         return redirect(url_for('login'))
     return render_template('register.html')
@@ -309,10 +315,23 @@ def forgot_password():
             token = s.dumps(user.email, salt='password-reset-salt')
             msg = Message('Password Reset Request', recipients=[user.email])
             link = url_for('reset_password', token=token, _external=True)
-            msg.body = f'Your reset password link is: {link}'
+            msg.html = f"""
+            <p>Hi {user.username},</p>
+
+            <p>We received a request to reset your password. No worries, we've got you covered!</p>
+
+            <p>Click the button below to reset your password:</p>
+            <p><a href="{link}" style="display: inline-block; padding: 10px 20px; font-size: 16px; color: white; background-color: #007bff; text-decoration: none; border-radius: 5px;">Reset Password</a></p>
+
+            <p>If you didn't request a password reset, please ignore this email or let us know.</p>
+
+            <p>Warm regards,</p>
+
+            <p>The Market Mapper Team</p>
+            """
             try:
                 mail.send(msg)
-                flash('A password reset link has been sent to your email.', 'info')
+                flash('A password reset link has been sent to your email. Please check your spam/junk if it does not immediately appear in your inbox.', 'info')
             except Exception as e:
                 print(f"Error sending email: {e}") #Print error for debugging
                 flash('An error occurred while sending the email. Please try again later.', 'danger')
@@ -1243,7 +1262,28 @@ def share_project(project_id):
             db.session.commit()
             flash('Project successfully shared!', 'success')
     else:
-        flash('Email address not found.', 'danger')
+        # Send invitation email
+        token = s.dumps(email, salt='email-invite-salt')
+        invite_link = url_for('register', token=token, _external=True)
+        msg = Message('Project Invitation', recipients=[email])
+        msg.html = f"""
+        <p>Hi there!</p>
+
+        <p>{current_user.username} has invited you to join their exciting project "{project.name}" on Market Mapper!</p>
+
+        <p>Click the button below to set up your account and start collaborating:</p>
+        <p><a href="{invite_link}" style="display: inline-block; padding: 10px 20px; font-size: 16px; color: white; background-color: #007bff; text-decoration: none; border-radius: 5px;">Join Project</a></p>
+
+        <p>We're thrilled to have you on board!</p>
+
+        <p>If you're new to Market Mapper and want to learn more, visit our <a href="{url_for('landing', _external=True)}">landing page</a>.</p>
+
+        <p>Warm wishes,</p>
+        
+        <p>The Market Mapper Team</p>
+        """
+        mail.send(msg)
+        flash('Invitation email sent successfully!', 'success')
 
     return redirect(url_for('dashboard'))
 
