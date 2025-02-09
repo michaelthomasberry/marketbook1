@@ -19,7 +19,6 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_admin import AdminIndexView, expose
 import stripe
-from flask_wtf import CSRFProtect  # Import CSRFProtect
 
 #################Configurations#####################
 app = Flask(__name__)
@@ -29,9 +28,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'  # Or your database 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
-
-# Initialize CSRF protection
-csrf = CSRFProtect(app)
 
 # Mail Configuration
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'  # Replace with your mail server
@@ -1630,7 +1626,6 @@ def stripe_webhook():
     return jsonify(success=True)
 
 @app.route('/track_click', methods=['POST'])
-@csrf.exempt  # Exempt CSRF protection for this route
 def track_click():
     button_name = request.json.get('button_name')
     if button_name:
