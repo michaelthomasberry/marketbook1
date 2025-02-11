@@ -23,6 +23,8 @@
     </div>
 </div>
 
+
+
 {% if current_user.role == 'standard' and products|length >= 6 %}
     <div class="alert alert-warning" role="alert">
         You have reached the maximum number of products for a standard account. <a href="{{ url_for('upgrade') }}" class="alert-link">Upgrade to a premium account</a> to add more products.
@@ -98,6 +100,21 @@
         </script>
     </div>
 {% endif %}
+
+<button class="btn btn-info mb-3" id="toggleFilterBtn"><i class="fas fa-filter"></i> Filter Products</button>
+<div id="filterForm" style="display: none;">
+    <form method="get" action="{{ url_for('product_comparison', project_id=project.id) }}">
+        <div class="form-group">
+            <label for="brand">Filter by Brand:</label>
+            <select name="brand" id="brand" class="form-control" multiple onchange="this.form.submit()">
+                <option value="">All Brands</option>
+                {% for brand in brands %}
+                    <option value="{{ brand }}" {% if brand in brand_filter %}selected{% endif %}>{{ brand }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+</div>
 
 {% if products %}
 <div class="row">
@@ -195,6 +212,15 @@
 
     $('.card-header a').click(function() {
         $(this).find('i').toggleClass('fa-chevron-down fa-chevron-up');
+    });
+
+    document.getElementById('toggleFilterBtn').addEventListener('click', function() {
+        const filterForm = document.getElementById('filterForm');
+        if (filterForm.style.display === 'none') {
+            filterForm.style.display = 'block';
+        } else {
+            filterForm.style.display = 'none';
+        }
     });
 </script>
 {% endblock %}

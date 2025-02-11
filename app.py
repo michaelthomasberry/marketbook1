@@ -30,12 +30,18 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 # Mail Configuration
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'  # Replace with your mail server
+app.config['MAIL_SERVER'] = 'smtp.mailgun.org'  # Replace with your mail server
 app.config['MAIL_PORT'] = 587  # Or 465 for SSL
 app.config['MAIL_USE_TLS'] = True  # Or False for SSL
-app.config['MAIL_USERNAME'] = 'michaelthomasberry1@gmail.com'  # Replace with your email
-app.config['MAIL_PASSWORD'] = 'nyfs fkzj ytew hysz'  # Replace with your email password or app password
+app.config['MAIL_USERNAME'] = 'postmaster@sandboxe1889dfc080b48deb41544f917bd748c.mailgun.org'  # Replace with your email
+app.config['MAIL_PASSWORD'] = 'b9bd8184eedabf850d02752f38e58e47-1654a412-0f809d59'  # Replace with your email password or app password
 app.config['MAIL_DEFAULT_SENDER'] = 'michaelthomasberry1@gmail.com'
+#app.config['MAIL_SERVER'] = 'smtp.gmail.com'  # Replace with your mail server
+#app.config['MAIL_PORT'] = 587  # Or 465 for SSL
+#app.config['MAIL_USE_TLS'] = True  # Or False for SSL
+#app.config['MAIL_USERNAME'] = 'michaelthomasberry1@gmail.com'  # Replace with your email
+#app.config['MAIL_PASSWORD'] = 'nyfs fkzj ytew hysz'  # Replace with your email password or app password
+#app.config['MAIL_DEFAULT_SENDER'] = 'michaelthomasberry1@gmail.com'
 mail = Mail(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
@@ -776,6 +782,8 @@ def product_comparison(project_id):
         flash('You are not authorized to manage this project.', 'danger')
         return redirect(url_for('dashboard'))
 
+    brand_filter = request.args.getlist('brand')
+
     if request.method == 'POST':
         if current_user.role == 'standard':
             user_products_count = Product.query.filter_by(project_id=project_id).count()
@@ -822,9 +830,12 @@ def product_comparison(project_id):
         else:
             return redirect(url_for('product_comparison', project_id=project_id))
 
-    products = Product.query.filter_by(project_id=project_id).all()
-    product_weighted_scores = {}
+    products_query = Product.query.filter_by(project_id=project_id)
+    if brand_filter and '' not in brand_filter:
+        products_query = products_query.filter(Product.brand_name.in_(brand_filter))
+    products = products_query.all()
 
+    product_weighted_scores = {}
     for product in products:
         total_weighted_score = 0
         ratings_for_product = Rating.query.filter_by(product_id=product.id).all()
@@ -832,7 +843,9 @@ def product_comparison(project_id):
             total_weighted_score += rating.score * (rating.value_driver.weighting / 100)
         product_weighted_scores[product.id] = round(total_weighted_score, 2)
 
-    return render_template('product_comparison.html', project=project, products=products, product_weighted_scores=product_weighted_scores)
+    brands = db.session.query(Product.brand_name).filter_by(project_id=project_id).distinct().all()
+
+    return render_template('product_comparison.html', project=project, products=products, product_weighted_scores=product_weighted_scores, brands=[b[0] for b in brands], brand_filter=brand_filter)
 
 #edit product
 @app.route('/manage/<int:project_id>/product/<int:product_id_to_edit>/edit', methods=['GET', 'POST'])
