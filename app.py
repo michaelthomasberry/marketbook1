@@ -30,18 +30,18 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 # Mail Configuration
-app.config['MAIL_SERVER'] = 'smtp.mailgun.org'  # Replace with your mail server
-app.config['MAIL_PORT'] = 587  # Or 465 for SSL
-app.config['MAIL_USE_TLS'] = True  # Or False for SSL
-app.config['MAIL_USERNAME'] = 'postmaster@sandboxe1889dfc080b48deb41544f917bd748c.mailgun.org'  # Replace with your email
-app.config['MAIL_PASSWORD'] = 'b9bd8184eedabf850d02752f38e58e47-1654a412-0f809d59'  # Replace with your email password or app password
-app.config['MAIL_DEFAULT_SENDER'] = 'michaelthomasberry1@gmail.com'
-#app.config['MAIL_SERVER'] = 'smtp.gmail.com'  # Replace with your mail server
+#app.config['MAIL_SERVER'] = 'smtp.mailgun.org'  # Replace with your mail server
 #app.config['MAIL_PORT'] = 587  # Or 465 for SSL
 #app.config['MAIL_USE_TLS'] = True  # Or False for SSL
-#app.config['MAIL_USERNAME'] = 'michaelthomasberry1@gmail.com'  # Replace with your email
-#app.config['MAIL_PASSWORD'] = 'nyfs fkzj ytew hysz'  # Replace with your email password or app password
+#app.config['MAIL_USERNAME'] = 'postmaster@sandboxe1889dfc080b48deb41544f917bd748c.mailgun.org'  # Replace with your email
+#app.config['MAIL_PASSWORD'] = 'b9bd8184eedabf850d02752f38e58e47-1654a412-0f809d59'  # Replace with your email password or app password
 #app.config['MAIL_DEFAULT_SENDER'] = 'michaelthomasberry1@gmail.com'
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'  # Replace with your mail server
+app.config['MAIL_PORT'] = 587  # Or 465 for SSL
+app.config['MAIL_USE_TLS'] = True  # Or False for SSL
+app.config['MAIL_USERNAME'] = 'michaelthomasberry1@gmail.com'  # Replace with your email
+app.config['MAIL_PASSWORD'] = 'nyfs fkzj ytew hysz'  # Replace with your email password or app password
+app.config['MAIL_DEFAULT_SENDER'] = 'michaelthomasberry1@gmail.com'
 mail = Mail(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
