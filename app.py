@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, make_response
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import joinedload
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -7,7 +7,7 @@ from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer
 import re
 import matplotlib.pyplot as plt
-from io import BytesIO
+from io import BytesIO, StringIO  # Import StringIO
 import base64
 import numpy as np #Import numpy
 from werkzeug.utils import secure_filename #Import secure_filename
@@ -19,6 +19,7 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_admin import AdminIndexView, expose
 import stripe
+import csv
 
 #################Configurations#####################
 app = Flask(__name__)
@@ -1543,6 +1544,37 @@ def survey_results(project_id):
     num_submissions = total_comparisons // (len(value_drivers) * (len(value_drivers) - 1) // 2)
 
     return render_template('survey_results.html', project=project, labels=labels, weights=weights, num_submissions=num_submissions)
+
+@app.route('/survey_results/<int:project_id>/download_csv')
+@login_required
+def download_survey_results_csv(project_id):
+    project = Project.query.get_or_404(project_id)
+    value_drivers = ValueDriver.query.filter_by(project_id=project_id).all()
+
+    # Fetch all comparison results for the project
+    comparison_results = ComparisonResult.query.filter_by(project_id=project_id).all()
+
+    # Create a dictionary to store the results
+    results = []
+    for result in comparison_results:
+        value_driver_a = ValueDriver.query.get(result.value_driver_a_id)
+        value_driver_b = ValueDriver.query.get(result.value_driver_b_id)
+        winner = ValueDriver.query.get(result.winner_id)
+        results.append({
+            'Value Driver A': value_driver_a.value_driver,
+            'Value Driver B': value_driver_b.value_driver,
+            'Winner': winner.value_driver
+        })
+
+    # Create a CSV response
+    si = StringIO()
+    cw = csv.DictWriter(si, fieldnames=['Value Driver A', 'Value Driver B', 'Winner'])
+    cw.writeheader()
+    cw.writerows(results)
+    output = make_response(si.getvalue())
+    output.headers["Content-Disposition"] = f"attachment; filename=survey_results_{project_id}.csv"
+    output.headers["Content-type"] = "text/csv"
+    return output
 
 @app.template_filter('zip')
 def zip_filter(a, b):
