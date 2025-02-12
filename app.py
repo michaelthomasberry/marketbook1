@@ -213,7 +213,13 @@ class MyAdminIndexView(AdminIndexView):
         cta_click_data = {button_name: count for button_name, count in cta_clicks}
         return self.render('admin/index.html', user=current_user, user_count=user_count, role_data=role_data, cta_click_data=cta_click_data)
 
+# Create the admin instance before adding views
+admin = Admin(app, index_view=MyAdminIndexView(), template_mode='bootstrap4')
+
 class SecureModelView(ModelView):
+    can_export = True
+    export_types = ['csv']
+
     def is_accessible(self):
         return current_user.is_authenticated and current_user.role == 'admin'
 
@@ -221,19 +227,50 @@ class SecureModelView(ModelView):
         flash('You are not authorized to access this page.', 'danger')
         return redirect(url_for('dashboard'))
 
-admin = Admin(app, index_view=MyAdminIndexView(), template_mode='bootstrap4')
-admin.add_view(SecureModelView(User, db.session))
-admin.add_view(SecureModelView(Project, db.session))
-admin.add_view(SecureModelView(ValueDriver, db.session))
-admin.add_view(SecureModelView(Product, db.session))
-admin.add_view(SecureModelView(Rating, db.session))
-admin.add_view(SecureModelView(Comment, db.session))
-admin.add_view(SecureModelView(Reply, db.session))
+# Define specific model views with searchable columns and CSV export enabled
+class UserModelView(SecureModelView):
+    column_searchable_list = ['username', 'email']
+
+class ProjectModelView(SecureModelView):
+    column_searchable_list = ['name', 'category', 'target_customer', 'country']
+
+class ValueDriverModelView(SecureModelView):
+    column_searchable_list = ['value_driver', 'measured_by']
+
+class ProductModelView(SecureModelView):
+    column_searchable_list = ['brand_name', 'product_name']
+
+class RatingModelView(SecureModelView):
+    column_searchable_list = ['score']
+
+class CommentModelView(SecureModelView):
+    column_searchable_list = ['note']
+
+class ReplyModelView(SecureModelView):
+    column_searchable_list = ['note']
+
+class RatingNoteModelView(SecureModelView):
+    column_searchable_list = ['note']
+
+class MarketingMessageModelView(SecureModelView):
+    column_searchable_list = ['content']
+
+class CallToActionClickModelView(SecureModelView):
+    column_searchable_list = ['button_name']
+
+# Add views to the admin instance
+admin.add_view(UserModelView(User, db.session))
+admin.add_view(ProjectModelView(Project, db.session))
+admin.add_view(ValueDriverModelView(ValueDriver, db.session))
+admin.add_view(ProductModelView(Product, db.session))
+admin.add_view(RatingModelView(Rating, db.session))
+admin.add_view(CommentModelView(Comment, db.session))
+admin.add_view(ReplyModelView(Reply, db.session))
 admin.add_view(SecureModelView(Like, db.session))
-admin.add_view(SecureModelView(RatingNote, db.session))
+admin.add_view(RatingNoteModelView(RatingNote, db.session))
 admin.add_view(SecureModelView(ComparisonResult, db.session))
-admin.add_view(SecureModelView(MarketingMessage, db.session))
-admin.add_view(SecureModelView(CallToActionClick, db.session))
+admin.add_view(MarketingMessageModelView(MarketingMessage, db.session))
+admin.add_view(CallToActionClickModelView(CallToActionClick, db.session))
 
 ############################## Routes  #######################################################################
 ###########Routes For Logging a user in ##############
