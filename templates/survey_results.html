@@ -65,5 +65,6 @@
     </script>
     <a href="{{ url_for('value_drivers', project_id=project.id) }}" class="btn btn-primary mt-3">Return to Value Drivers</a>
     <a href="{{ url_for('download_survey_results_csv', project_id=project.id) }}" class="btn btn-secondary mt-3">Download CSV</a>
+    <a href="{{ url_for('survey_pairwise_results', project_id=project.id) }}" class="btn btn-info mt-3">View Pairwise Comparison Choices</a>
 </div>
 {% endblock %}

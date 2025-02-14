@@ -1745,6 +1745,32 @@ def click_data():
         'monthly': [{'month': month, 'count': count} for month, count in monthly_clicks]
     })
 
+@app.route('/survey_pairwise_results/<int:project_id>')
+@login_required
+def survey_pairwise_results(project_id):
+    project = Project.query.get_or_404(project_id)
+    value_drivers = ValueDriver.query.filter_by(project_id=project_id).all()
+
+    # Initialize a dictionary to store the pairwise comparison counts
+    pairwise_counts = {}
+    for vd1 in value_drivers:
+        for vd2 in value_drivers:
+            if vd1.id != vd2.id:
+                pairwise_counts[(vd1.id, vd2.id)] = {'A': 0, 'B': 0}
+
+    # Fetch all comparison results for the project
+    comparison_results = ComparisonResult.query.filter_by(project_id=project_id).all()
+
+    # Count the choices for each pairwise comparison
+    for result in comparison_results:
+        pairwise_counts[(result.value_driver_a_id, result.value_driver_b_id)]['A'] += 1 if result.winner_id == result.value_driver_a_id else 0
+        pairwise_counts[(result.value_driver_a_id, result.value_driver_b_id)]['B'] += 1 if result.winner_id == result.value_driver_b_id else 0
+
+    # Create a dictionary to map value driver IDs to their names
+    value_drivers_dict = {vd.id: vd.value_driver for vd in value_drivers}
+
+    return render_template('survey_pairwise_results.html', project=project, pairwise_counts=pairwise_counts, value_drivers_dict=value_drivers_dict)
+
 ####################################Initiate App ############################################
 
 if __name__ == '__main__':

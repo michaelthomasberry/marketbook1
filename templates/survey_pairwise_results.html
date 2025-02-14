@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Pairwise Comparison Results</h1>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Value Driver A</th>
+                <th>Value Driver B</th>
+                <th>Choices for A</th>
+                <th>Choices for B</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for (vd_a_id, vd_b_id), counts in pairwise_counts.items() %}
+            <tr>
+                <td>{{ value_drivers_dict[vd_a_id] }}</td>
+                <td>{{ value_drivers_dict[vd_b_id] }}</td>
+                <td>{{ counts['A'] }}</td>
+                <td>{{ counts['B'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{{ url_for('survey_results', project_id=project.id) }}" class="btn btn-primary mt-3">Back to Survey Results</a>
+</div>
+{% endblock %}
