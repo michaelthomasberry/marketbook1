@@ -3,7 +3,7 @@
 {% block content %}
 <div class="container mt-4">
     <h1>Create Survey Segmentation Questions</h1>
-    <p class="instruction-text">It's important to ask segmentation questions to enable post-hoc analysis. By narrowing down the options and asking no more than three questions, you can later filter responses to see if there are segments that value things differently. This will help in understanding diverse perspectives and tailoring strategies accordingly.</p>
+    <p class="instruction-text">Want to get a better handle on what different groups of people think?  Asking a few smart questions can really help!  If you keep it to just two or three, you can easily sort the answers later.  This way, you can see if different groups value things differently, giving you a clearer picture of everyone's perspective and helping you tailor your approach.</p>
     <form method="POST" action="{{ url_for('create_survey', project_id=project.id) }}" id="survey-form">
         <div id="questions-container">
             {% for question in additional_questions %}
@@ -12,12 +12,18 @@
                 <input type="text" class="form-control" id="question_{{ loop.index }}_text" name="question_{{ loop.index }}_text" value="{{ question.text }}">
                 <label for="question_{{ loop.index }}_options">Question {{ loop.index }} Options (comma-separated)</label>
                 <input type="text" class="form-control" id="question_{{ loop.index }}_options" name="question_{{ loop.index }}_options" value="{{ question.options | join(', ') }}">
-                <button type="button" class="btn btn-danger mt-2 remove-question">Remove Question</button>
+                <button type="button" class="btn btn-link text-danger remove-question">
+                    <i class="fas fa-trash-alt"></i> Remove
+                </button>
             </div>
             {% endfor %}
         </div>
-        <button type="button" class="btn btn-secondary mt-3" id="add-question">Add Question</button>
-        <button type="submit" class="btn btn-primary mt-3">Save Questions</button>
+        <button type="button" class="btn btn-secondary mt-3" id="add-question">
+            <i class="fas fa-plus"></i> Add Question
+        </button>
+        <button type="submit" class="btn btn-primary mt-3">
+            <i class="fas fa-save"></i> Save Questions
+        </button>
     </form>
 </div>
 
@@ -28,12 +34,12 @@
         document.getElementById('add-question').addEventListener('click', function() {
             questionCount++;
             const questionGroup = document.createElement('div');
-            questionGroup.classList.add('form-group', 'question-group');
+            questionGroup.classList.add('form-group', 'question-group', 'mb-3', 'p-3', 'border', 'rounded');
             questionGroup.innerHTML = `
-                <label for="question_${questionCount}_text">Question ${questionCount} Text</label>
-                <input type="text" class="form-control" id="question_${questionCount}_text" name="question_${questionCount}_text">
-                <label for="question_${questionCount}_options">Question ${questionCount} Options (comma-separated)</label>
-                <input type="text" class="form-control" id="question_${questionCount}_options" name="question_${questionCount}_options" placeholder="Option 1, Option 2, Option 3">
+                <label for="question_${questionCount}_text" class="form-label">Question ${questionCount} Text</label>
+                <input type="text" class="form-control mb-2" id="question_${questionCount}_text" name="question_${questionCount}_text">
+                <label for="question_${questionCount}_options" class="form-label">Question ${questionCount} Options (comma-separated)</label>
+                <input type="text" class="form-control mb-2" id="question_${questionCount}_options" name="question_${questionCount}_options" placeholder="Option 1, Option 2, Option 3">
                 <button type="button" class="btn btn-danger mt-2 remove-question">Remove Question</button>
             `;
             document.getElementById('questions-container').appendChild(questionGroup);

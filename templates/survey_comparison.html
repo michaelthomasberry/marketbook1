@@ -8,7 +8,7 @@
     <form method="POST" id="survey-form">
         {% if session.additional_questions %}
         <div id="additional-questions-section">
-            <h2>Additional Questions</h2>
+            <h2>Share a little about yourself</h2>
             {% for question in session.additional_questions %}
             <div class="form-group">
                 <label>{{ question.text }}</label>
