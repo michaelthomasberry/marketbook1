@@ -14,15 +14,19 @@
         </thead>
         <tbody>
             {% for (vd_a_id, vd_b_id), counts in pairwise_counts.items() %}
+            {% if counts['A'] > 0 or counts['B'] > 0 %}
             <tr>
                 <td>{{ value_drivers_dict[vd_a_id] }}</td>
                 <td>{{ value_drivers_dict[vd_b_id] }}</td>
-                <td>{{ counts['A'] }}</td>
-                <td>{{ counts['B'] }}</td>
+                <td>{{ counts['A'] }} ({{ "%.1f" | format((counts['A'] / (counts['A'] + counts['B'])) * 100) }}%)</td>
+                <td>{{ counts['B'] }} ({{ "%.1f" | format((counts['B'] / (counts['A'] + counts['B'])) * 100) }}%)</td>
             </tr>
+            {% endif %}
             {% endfor %}
         </tbody>
     </table>
-    <a href="{{ url_for('survey_results', project_id=project.id) }}" class="btn btn-primary mt-3">Back to Survey Results</a>
+    <a href="{{ url_for('survey_results', project_id=project.id) }}" class="btn btn-primary mt-3">
+        <i class="fas fa-arrow-left"></i> Back to Survey Results
+    </a>
 </div>
 {% endblock %}

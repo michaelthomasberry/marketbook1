@@ -1571,13 +1571,23 @@ def survey_results(project_id):
     # Fetch additional questions' responses from the database
     additional_questions = AdditionalQuestionResponse.query.filter_by(project_id=project_id).all()
 
+    # Organize additional question responses
+    additional_questions_data = {}
+    for response in additional_questions:
+        if response.question_text not in additional_questions_data:
+            additional_questions_data[response.question_text] = {}
+        if response.response not in additional_questions_data[response.question_text]:
+            additional_questions_data[response.question_text][response.response] = 0
+        additional_questions_data[response.question_text][response.response] += 1
+
     return render_template('survey_results.html', 
                            project=project, 
                            survey_labels=labels, 
                            survey_weights=weights, 
                            num_submissions=num_submissions, 
                            additional_questions=additional_questions,
-                           survey_data=survey_data)
+                           survey_data=survey_data,
+                           additional_questions_data=additional_questions_data)
 
 @app.route('/survey_results/<int:project_id>/download_csv')
 @login_required

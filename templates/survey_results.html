@@ -2,80 +2,102 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h1>Survey Results</h1>
-    <p class="text-center font-weight-bold text-info">Number of submissions: <span class="badge badge-pill badge-primary">{{ num_submissions }}</span></p>
-    <ul>
-        {% for label, weight in survey_data %}
-        <li>{{ label }}: {{ "%.1f" | format(weight) }}%</li>
-        {% endfor %}
-    </ul>
-    <div style="max-width: 300px; margin: auto;">
-        <canvas id="surveyPieChart" width="300" height="300"></canvas>
+    <div class="card"></div>
+        <div class="card-header text-center">
+            <h1>Survey Results</h1>
+        </div>
+        <div class="card-body">
+            <p class="text-center font-weight-bold text-info">Number of submissions: <span class="badge badge-pill badge-primary">{{ num_submissions }}</span></p>
+            
+            <h2 class="mt-5">Segmentation Responses</h2>
+            <ul class="list-group">
+                {% for question_text, responses in additional_questions_data.items() %}
+                <li class="list-group-item">
+                    <strong>{{ question_text }}</strong>
+                    <ul class="list-group mt-2">
+                        {% for response, count in responses.items() %}
+                        <li class="list-group-item">{{ response }}: {{ count }}</li>
+                        {% endfor %}
+                    </ul>
+                </li>
+                {% endfor %}
+            </ul>
+            
+            <h2 class="mt-5">Value Driver Weightings</h2>
+            <a href="{{ url_for('download_survey_results_csv', project_id=project.id) }}" class="btn btn-secondary mt-3">
+                <i class="fas fa-download"></i> Download CSV
+            </a>
+            <a href="{{ url_for('survey_pairwise_results', project_id=project.id) }}" class="btn btn-info mt-3">
+                <i class="fas fa-eye"></i> View Pairwise Comparison Choices
+            </a>
+            <ul class="list-group">
+                {% for label, weight in survey_data %}
+                <li class="list-group-item">{{ label }}: {{ "%.1f" | format(weight) }}%</li>
+                {% endfor %}
+            </ul>
+            
+            <div class="text-center mt-5">
+                <canvas id="surveyPieChart" width="300" height="300"></canvas>
+            </div>
+        </div>
+        <div class="card-footer text-left">
+            <a href="{{ url_for('value_drivers', project_id=project.id) }}" class="btn btn-primary mt-3">
+                <i class="fas fa-arrow-left"></i> Return to Value Drivers
+            </a>
+            
+        </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        var ctx = document.getElementById('surveyPieChart').getContext('2d');
-        var surveyPieChart = new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: {{ survey_labels | tojson }},
-                datasets: [{
-                    data: {{ survey_weights | tojson }},
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.2)',
-                        'rgba(54, 162, 235, 0.2)',
-                        'rgba(255, 206, 86, 0.2)',
-                        'rgba(75, 192, 192, 0.2)',
-                        'rgba(153, 102, 255, 0.2)',
-                        'rgba(255, 159, 64, 0.2)'
-                    ],
-                    borderColor: [
-                        'rgba(255, 99, 132, 1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(153, 102, 255, 1)',
-                        'rgba(255, 159, 64, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                var label = context.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                label += context.raw.toFixed(1) + '%';
-                                return label;
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    var ctx = document.getElementById('surveyPieChart').getContext('2d');
+    var surveyPieChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: {{ survey_labels | tojson }},
+            datasets: [{
+                data: {{ survey_weights | tojson }},
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(255, 206, 86, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(153, 102, 255, 0.2)',
+                    'rgba(255, 159, 64, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            var label = context.label || '';
+                            if (label) {
+                                label += ': ';
                             }
+                            label += context.raw.toFixed(1) + '%';
+                            return label;
                         }
                     }
                 }
             }
-        });
-    </script>
-    <a href="{{ url_for('value_drivers', project_id=project.id) }}" class="btn btn-primary mt-3">Return to Value Drivers</a>
-    <a href="{{ url_for('download_survey_results_csv', project_id=project.id) }}" class="btn btn-secondary mt-3">Download CSV</a>
-    <a href="{{ url_for('survey_pairwise_results', project_id=project.id) }}" class="btn btn-info mt-3">View Pairwise Comparison Choices</a>
-
-    {% if additional_questions %}
-    <h2 class="mt-5">Segmentation Results</h2>
-    <ul>
-        {% for question in additional_questions %}
-        <li><strong>{{ question.question_text }}</strong>: {{ question.response }}</li>
-        {% endfor %}
-    </ul>
-    {% else %}
-    <p class="mt-5">No additional questions data available.</p>
-    {% endif %}
-</div>
+        }
+    });
+</script>
 {% endblock %}
