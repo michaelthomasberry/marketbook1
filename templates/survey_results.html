@@ -5,7 +5,7 @@
     <h1>Survey Results</h1>
     <p class="text-center font-weight-bold text-info">Number of submissions: <span class="badge badge-pill badge-primary">{{ num_submissions }}</span></p>
     <ul>
-        {% for label, weight in labels|zip(weights) %}
+        {% for label, weight in survey_data %}
         <li>{{ label }}: {{ "%.1f" | format(weight) }}%</li>
         {% endfor %}
     </ul>
@@ -18,9 +18,9 @@
         var surveyPieChart = new Chart(ctx, {
             type: 'pie',
             data: {
-                labels: {{ labels | tojson }},
+                labels: {{ survey_labels | tojson }},
                 datasets: [{
-                    data: {{ weights | tojson }},
+                    data: {{ survey_weights | tojson }},
                     backgroundColor: [
                         'rgba(255, 99, 132, 0.2)',
                         'rgba(54, 162, 235, 0.2)',
@@ -66,5 +66,16 @@
     <a href="{{ url_for('value_drivers', project_id=project.id) }}" class="btn btn-primary mt-3">Return to Value Drivers</a>
     <a href="{{ url_for('download_survey_results_csv', project_id=project.id) }}" class="btn btn-secondary mt-3">Download CSV</a>
     <a href="{{ url_for('survey_pairwise_results', project_id=project.id) }}" class="btn btn-info mt-3">View Pairwise Comparison Choices</a>
+
+    {% if additional_questions %}
+    <h2 class="mt-5">Segmentation Results</h2>
+    <ul>
+        {% for question in additional_questions %}
+        <li><strong>{{ question.question_text }}</strong>: {{ question.response }}</li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p class="mt-5">No additional questions data available.</p>
+    {% endif %}
 </div>
 {% endblock %}

@@ -20,6 +20,7 @@ config = context.config
 fileConfig(config.config_file_name)
 logger = logging.getLogger('alembic.env')
 
+from models import db, AdditionalQuestionResponse  # Add this line
 
 def get_engine():
     try:

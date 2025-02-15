@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Create Survey Segmentation Questions</h1>
+    <p class="instruction-text">It's important to ask segmentation questions to enable post-hoc analysis. By narrowing down the options and asking no more than three questions, you can later filter responses to see if there are segments that value things differently. This will help in understanding diverse perspectives and tailoring strategies accordingly.</p>
+    <form method="POST" action="{{ url_for('create_survey', project_id=project.id) }}" id="survey-form">
+        <div id="questions-container">
+            {% for question in additional_questions %}
+            <div class="form-group question-group">
+                <label for="question_{{ loop.index }}_text">Question {{ loop.index }} Text</label>
+                <input type="text" class="form-control" id="question_{{ loop.index }}_text" name="question_{{ loop.index }}_text" value="{{ question.text }}">
+                <label for="question_{{ loop.index }}_options">Question {{ loop.index }} Options (comma-separated)</label>
+                <input type="text" class="form-control" id="question_{{ loop.index }}_options" name="question_{{ loop.index }}_options" value="{{ question.options | join(', ') }}">
+                <button type="button" class="btn btn-danger mt-2 remove-question">Remove Question</button>
+            </div>
+            {% endfor %}
+        </div>
+        <button type="button" class="btn btn-secondary mt-3" id="add-question">Add Question</button>
+        <button type="submit" class="btn btn-primary mt-3">Save Questions</button>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let questionCount = {{ additional_questions | length }};
+
+        document.getElementById('add-question').addEventListener('click', function() {
+            questionCount++;
+            const questionGroup = document.createElement('div');
+            questionGroup.classList.add('form-group', 'question-group');
+            questionGroup.innerHTML = `
+                <label for="question_${questionCount}_text">Question ${questionCount} Text</label>
+                <input type="text" class="form-control" id="question_${questionCount}_text" name="question_${questionCount}_text">
+                <label for="question_${questionCount}_options">Question ${questionCount} Options (comma-separated)</label>
+                <input type="text" class="form-control" id="question_${questionCount}_options" name="question_${questionCount}_options" placeholder="Option 1, Option 2, Option 3">
+                <button type="button" class="btn btn-danger mt-2 remove-question">Remove Question</button>
+            `;
+            document.getElementById('questions-container').appendChild(questionGroup);
+        });
+
+        document.getElementById('questions-container').addEventListener('click', function(event) {
+            if (event.target.classList.contains('remove-question')) {
+                event.target.closest('.question-group').remove();
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, make_response
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, make_response, session
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import joinedload
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
@@ -7,12 +7,12 @@ from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer
 import re
 import matplotlib.pyplot as plt
-from io import BytesIO, StringIO  # Import StringIO
+from io import BytesIO, StringIO
 import base64
-import numpy as np #Import numpy
-from werkzeug.utils import secure_filename #Import secure_filename
+import numpy as np
+from werkzeug.utils import secure_filename
 import os
-from datetime import datetime #Import datetime for date handling
+from datetime import datetime
 from collections import defaultdict
 from flask_migrate import Migrate
 from flask_admin import Admin
@@ -20,6 +20,8 @@ from flask_admin.contrib.sqla import ModelView
 from flask_admin import AdminIndexView, expose
 import stripe
 import csv
+from flask import render_template, url_for
+
 
 #################Configurations#####################
 app = Flask(__name__)
@@ -27,7 +29,8 @@ app.static_folder = 'static'
 app.config['SECRET_KEY'] = 'your_secret_key'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'  # Or your database URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
+db = SQLAlchemy()
+db.init_app(app)
 migrate = Migrate(app, db)
 
 # Mail Configuration
@@ -53,7 +56,7 @@ stripe.api_key = 'your_stripe_secret_key'   ################### To do ##########
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
 
 # Configure upload folder - CORRECT WAY
 UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'uploads') #Correct way to define the upload folder
@@ -200,6 +203,13 @@ class CallToActionClick(db.Model):
     button_name = db.Column(db.String(50), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
 
+class AdditionalQuestionResponse(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
+    question_text = db.Column(db.String(255), nullable=False)
+    response = db.Column(db.String(255), nullable=False)
+
+
 class MyAdminIndexView(AdminIndexView):
     @expose('/')
     @login_required
@@ -272,6 +282,7 @@ admin.add_view(RatingNoteModelView(RatingNote, db.session))
 admin.add_view(SecureModelView(ComparisonResult, db.session))
 admin.add_view(MarketingMessageModelView(MarketingMessage, db.session))
 admin.add_view(CallToActionClickModelView(CallToActionClick, db.session))
+admin.add_view(SecureModelView(AdditionalQuestionResponse, db.session))  # Add this line
 
 ############################## Routes  #######################################################################
 ###########Routes For Logging a user in ##############
@@ -669,8 +680,10 @@ def value_drivers(project_id):
                 vd.weighting = 0.0
             # Delete associated comparison results
             ComparisonResult.query.filter_by(project_id=project_id).delete()
+            # Delete additional question responses
+            AdditionalQuestionResponse.query.filter_by(project_id=project_id).delete()
             db.session.commit()
-            flash('Value driver weightings have been reset and comparison results deleted.', 'success')
+            flash('Value driver weightings have been reset, comparison results and additional question responses deleted.', 'success')
         elif 'weight_my_drivers' in request.form:  # New button for weighting drivers
             return redirect(url_for('pairwise_comparison', project_id=project_id))
         return redirect(url_for('value_drivers', project_id=project_id))  # Redirect after all POST operations
@@ -1498,6 +1511,17 @@ def survey_comparison():
             )
             db.session.add(comparison_result)
 
+        # Store additional questions' responses
+        additional_questions = session.get('additional_questions', [])
+        for i, question in enumerate(additional_questions, start=1):
+            response = request.form.get(f'additional_question_{i}')
+            additional_response = AdditionalQuestionResponse(
+                project_id=project_id,
+                question_text=question['text'],
+                response=response
+            )
+            db.session.add(additional_response)
+
         db.session.commit()
         flash('Thank you for your submission!', 'success')
         return redirect(url_for('thank_you'))
@@ -1539,11 +1563,21 @@ def survey_results(project_id):
 
     labels = [vd.value_driver for vd in value_drivers]
     weights = [vd.weighting for vd in value_drivers]
+    survey_data = list(zip(labels, weights))
 
     # Calculate the number of survey submissions
     num_submissions = total_comparisons // (len(value_drivers) * (len(value_drivers) - 1) // 2)
 
-    return render_template('survey_results.html', project=project, labels=labels, weights=weights, num_submissions=num_submissions)
+    # Fetch additional questions' responses from the database
+    additional_questions = AdditionalQuestionResponse.query.filter_by(project_id=project_id).all()
+
+    return render_template('survey_results.html', 
+                           project=project, 
+                           survey_labels=labels, 
+                           survey_weights=weights, 
+                           num_submissions=num_submissions, 
+                           additional_questions=additional_questions,
+                           survey_data=survey_data)
 
 @app.route('/survey_results/<int:project_id>/download_csv')
 @login_required
@@ -1568,9 +1602,11 @@ def download_survey_results_csv(project_id):
 
     # Create a CSV response
     si = StringIO()
-    cw = csv.DictWriter(si, fieldnames=['Value Driver A', 'Value Driver B', 'Winner'])
+    fieldnames = ['Value Driver A', 'Value Driver B', 'Winner']
+    cw = csv.DictWriter(si, fieldnames=fieldnames)
     cw.writeheader()
-    cw.writerows(results)
+    for result in results:
+        cw.writerow(result)
     output = make_response(si.getvalue())
     output.headers["Content-Disposition"] = f"attachment; filename=survey_results_{project_id}.csv"
     output.headers["Content-type"] = "text/csv"
@@ -1578,7 +1614,10 @@ def download_survey_results_csv(project_id):
 
 @app.template_filter('zip')
 def zip_filter(a, b):
-    return zip(a, b)
+    try:
+        return zip(a, b)
+    except TypeError:
+        return []
 
 @app.route('/admin/marketing_message', methods=['GET', 'POST'])
 @login_required
@@ -1770,6 +1809,37 @@ def survey_pairwise_results(project_id):
     value_drivers_dict = {vd.id: vd.value_driver for vd in value_drivers}
 
     return render_template('survey_pairwise_results.html', project=project, pairwise_counts=pairwise_counts, value_drivers_dict=value_drivers_dict)
+
+@app.route('/manage/<int:project_id>/create_survey', methods=['GET', 'POST'])
+@login_required
+def create_survey(project_id):
+    project = Project.query.get_or_404(project_id)
+    if project.user_id != current_user.id and current_user not in project.shared_users:
+        flash('You are not authorized to manage this project.', 'danger')
+        return redirect(url_for('dashboard'))
+
+    if request.method == 'POST':
+        additional_questions = []
+        for i in range(1, 4):
+            question_text = request.form.get(f'question_{i}_text')
+            question_options = request.form.get(f'question_{i}_options')
+            if question_text and question_options:
+                options_list = [option.strip() for option in question_options.split(',')]
+                additional_questions.append({
+                    'text': question_text,
+                    'type': 'dropdown',
+                    'options': options_list
+                })
+
+        # Store additional questions in session or database as needed
+        session['additional_questions'] = additional_questions
+
+        return redirect(url_for('survey', project_id=project_id))
+
+    # Load existing questions from session or database
+    additional_questions = session.get('additional_questions', [])
+
+    return render_template('create_survey.html', project=project, additional_questions=additional_questions)
 
 ####################################Initiate App ############################################
 
