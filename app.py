@@ -40,7 +40,7 @@ migrate = Migrate(app, db)
 #app.config['MAIL_USERNAME'] = 'postmaster@sandboxe1889dfc080b48deb41544f917bd748c.mailgun.org'  # Replace with your email
 #app.config['MAIL_PASSWORD'] = 'b9bd8184eedabf850d02752f38e58e47-1654a412-0f809d59'  # Replace with your email password or app password
 #app.config['MAIL_DEFAULT_SENDER'] = 'michaelthomasberry1@gmail.com'
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'  # Replace with your mail server
+#app.config['MAIL_SERVER'] = 'smtp.gmail.com'  # Replace with your mail server
 app.config['MAIL_PORT'] = 587  # Or 465 for SSL
 app.config['MAIL_USE_TLS'] = True  # Or False for SSL
 app.config['MAIL_USERNAME'] = 'michaelthomasberry1@gmail.com'  # Replace with your email
@@ -50,9 +50,10 @@ mail = Mail(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
-
 # Stripe Configuration
-stripe.api_key = 'your_stripe_secret_key'   ################### To do ##########################
+app.config['STRIPE_PUBLIC_KEY'] = 'pk_test_51KcUo7IaOQbrDOt1Rvb8Bt9XT4HnxkFuxVJCWWcaNgFMCSbIY2thOLrOyQjJEyHKOO0F9RDTlDEYdd2YjH5jDBJi00KILJwBSY'
+app.config['STRIPE_SECRET_KEY'] = 'sk_test_51KcUo7IaOQbrDOt1T5Rml1Mnwf7dLOBtoCq87Y9TLKfkZkHWpETciUBsy0Vz23so2OQQsStnuPjcOInSgtaaAYCw00I6O33Ynh'
+stripe.api_key = app.config['STRIPE_SECRET_KEY']
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -287,6 +288,21 @@ admin.add_view(SecureModelView(AdditionalQuestionResponse, db.session))  # Add t
 ############################## Routes  #######################################################################
 ###########Routes For Logging a user in ##############
 
+@app.route('/stripe_checkout')
+def stripe_checkout():
+    session = stripe.checkout.Session.create(
+        payment_method_types=['card'],
+        line_items=[{
+            'price': 'price_1QtBKyIaOQbrDOt1hjI47aga',
+            'quantity': 1,
+        }],
+        mode='payment',
+        success_url='https://example.com/success?session_id={CHECKOUT_SESSION_ID}',
+        cancel_url=url_for('index', _external=True),
+    )
+    return render_template('thank_you.html')
+
+
 #Register
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -500,11 +516,35 @@ def dashboard():
 @login_required
 def upgrade():
     if request.method == 'POST':
-        current_user.role = 'premium'
-        db.session.commit()
-        flash('Congratulations! You have been upgraded to a premium account.', 'success')
-        return redirect(url_for('welcome_premium'))
+        return redirect(url_for('create_checkout_session'))
     return render_template('upgrade.html')
+
+@app.route('/create-checkout-session', methods=['POST'])
+@login_required
+def create_checkout_session():
+    try:
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price': 'price_1QtBKyIaOQbrDOt1hjI47aga',  # Ensure this is the correct price ID
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=url_for('upgrade_success', _external=True),
+            cancel_url=url_for('upgrade', _external=True),
+        )
+        return redirect(checkout_session.url, code=303)
+    except Exception as e:
+        flash(f'An error occurred: {str(e)}', 'danger')
+        return redirect(url_for('upgrade'))
+
+@app.route('/upgrade_success')
+@login_required
+def upgrade_success():
+    current_user.role = 'premium'
+    db.session.commit()
+    flash('Congratulations! You have been upgraded to a premium account.', 'success')
+    return redirect(url_for('thank_you'))
 
 @app.route('/welcome_premium')
 @login_required
@@ -1726,35 +1766,6 @@ def price_movement_indicators(project_id):
                            brands=[b[0] for b in brands],
                            product_names=[p[0] for p in product_names],
                            project_id=project_id)
-
-@app.route('/stripe_webhook', methods=['POST'])
-def stripe_webhook():
-    payload = request.get_data(as_text=True)
-    sig_header = request.headers.get('Stripe-Signature')    
-    endpoint_secret = 'your_stripe_endpoint_secret'################### to do  ########################
-
-    try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, endpoint_secret
-        )
-    except ValueError as e:
-        # Invalid payload
-        return jsonify(success=False), 400
-    except stripe.error.SignatureVerificationError as e:
-        # Invalid signature
-        return jsonify(success=False), 400
-
-    # Handle the event
-    if event['type'] == 'checkout.session.completed':
-        session = event['data']['object']
-        customer_email = session['customer_details']['email']
-        user = User.query.filter_by(email=customer_email).first()
-        if user:
-            user.role = 'premium'
-            db.session.commit()
-            flash('Congratulations! You have been upgraded to a premium account.', 'success')
-
-    return jsonify(success=True)
 
 @app.route('/track_click', methods=['POST'])
 def track_click():

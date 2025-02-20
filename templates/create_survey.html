@@ -3,7 +3,7 @@
 {% block content %}
 <div class="container mt-4">
     <h1>Create Survey Segmentation Questions</h1>
-    <p class="instruction-text">Want to get a better handle on what different groups of people think?  Asking a few smart questions can really help!  If you keep it to just two or three, you can easily sort the answers later.  This way, you can see if different groups value things differently, giving you a clearer picture of everyone's perspective and helping you tailor your approach.</p>
+    <p class="instruction-text">Create a couple of "select what best describes you" questions to segment your audience. This will help you analyze how different groups respond and tailor your strategy.</p>
     <form method="POST" action="{{ url_for('create_survey', project_id=project.id) }}" id="survey-form">
         <div id="questions-container">
             {% for question in additional_questions %}

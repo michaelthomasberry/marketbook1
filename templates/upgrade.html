@@ -35,7 +35,9 @@
                     <li style="margin-bottom: 10px;"><i class="fas fa-check mr-2" style="color: #28a745;"></i>Premium Survey Comparison Service</li>
                     <li style="margin-bottom: 10px;"><i class="fas fa-check mr-2" style="color: #28a745;"></i>Statistically Significant Data</li>
                 </ul>
-                <a href="https://buy.stripe.com/6oE2bPeJ37062Na7ss" class="btn btn-warning"><i class="fas fa-arrow-up"></i> Upgrade to Premium</a>
+                <form action="{{ url_for('create_checkout_session') }}" method="POST">
+                    <button type="submit" class="btn btn-primary">Upgrade to Premium</button>
+                </form>
                 <p class="mt-2 text-muted small">Cancel anytime.</p> 
                 
             </div>
