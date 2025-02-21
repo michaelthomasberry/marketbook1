@@ -544,7 +544,7 @@ def upgrade_success():
     current_user.role = 'premium'
     db.session.commit()
     flash('Congratulations! You have been upgraded to a premium account.', 'success')
-    return redirect(url_for('thank_you'))
+    return redirect(url_for('welcome_premium'))
 
 @app.route('/welcome_premium')
 @login_required
