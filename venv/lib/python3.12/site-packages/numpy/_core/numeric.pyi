@@ -872,15 +872,15 @@ def array_equiv(a1: ArrayLike, a2: ArrayLike) -> bool: ...
 
 @overload
 def astype(
-    x: ndarray[_ShapeType, dtype[Any]],
+    x: NDArray[Any],
     dtype: _DTypeLike[_SCT],
     copy: bool = ...,
     device: None | L["cpu"] = ...,
-) -> ndarray[_ShapeType, dtype[_SCT]]: ...
+) -> NDArray[_SCT]: ...
 @overload
 def astype(
-    x: ndarray[_ShapeType, dtype[Any]],
+    x: NDArray[Any],
     dtype: DTypeLike,
     copy: bool = ...,
     device: None | L["cpu"] = ...,
-) -> ndarray[_ShapeType, dtype[Any]]: ...
+) -> NDArray[Any]: ...

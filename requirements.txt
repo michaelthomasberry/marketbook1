@@ -12,3 +12,4 @@ Flask-Migrate==4.1.0
 Flask-Admin
 stripe
 flask-wtf
+psycopg2-binary

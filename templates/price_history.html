@@ -21,10 +21,10 @@
                 <td>{{ history.old_price }}</td>
                 <td>{{ history.new_price }}</td>
                 <td>
-                    {% if history.new_price > history.old_price %}
-                    <span style="color: green;">{{ ((history.new_price - history.old_price) / history.old_price * 100) | round(2) }}%</span>
+                    {% if history.old_price != 0 %}
+                        <span style="color: green;">{{ ((history.new_price - history.old_price) / history.old_price * 100) | round(2) }}%</span>
                     {% else %}
-                    <span style="color: red;">{{ ((history.new_price - history.old_price) / history.old_price * 100) | round(2) }}%</span>
+                        <span style="color: red;">N/A</span>
                     {% endif %}
                 </td>
                 <td>

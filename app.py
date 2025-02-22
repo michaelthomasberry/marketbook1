@@ -21,13 +21,22 @@ from flask_admin import AdminIndexView, expose
 import stripe
 import csv
 from flask import render_template, url_for
+from dotenv import load_dotenv
 
+# Load environment variables from .env file
+load_dotenv()
+
+# Debugging: Print the SQLALCHEMY_DATABASE_URI
+print("SQLALCHEMY_DATABASE_URI:", os.getenv('SQLALCHEMY_DATABASE_URI'))
 
 #################Configurations#####################
 app = Flask(__name__)
 app.static_folder = 'static'
-app.config['SECRET_KEY'] = 'your_secret_key'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'  # Or your database URI
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+
+# filepath: /workspaces/marketbook1/app.py
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'  # Or your database URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy()
 db.init_app(app)
@@ -40,19 +49,21 @@ migrate = Migrate(app, db)
 #app.config['MAIL_USERNAME'] = 'postmaster@sandboxe1889dfc080b48deb41544f917bd748c.mailgun.org'  # Replace with your email
 #app.config['MAIL_PASSWORD'] = 'b9bd8184eedabf850d02752f38e58e47-1654a412-0f809d59'  # Replace with your email password or app password
 #app.config['MAIL_DEFAULT_SENDER'] = 'michaelthomasberry1@gmail.com'
-#app.config['MAIL_SERVER'] = 'smtp.gmail.com'  # Replace with your mail server
-app.config['MAIL_PORT'] = 587  # Or 465 for SSL
-app.config['MAIL_USE_TLS'] = True  # Or False for SSL
-app.config['MAIL_USERNAME'] = 'michaelthomasberry1@gmail.com'  # Replace with your email
-app.config['MAIL_PASSWORD'] = 'nyfs fkzj ytew hysz'  # Replace with your email password or app password
-app.config['MAIL_DEFAULT_SENDER'] = 'michaelthomasberry1@gmail.com'
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_USERNAME')
 mail = Mail(app)
+
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 s = URLSafeTimedSerializer(app.config['SECRET_KEY'])
+
 # Stripe Configuration
-app.config['STRIPE_PUBLIC_KEY'] = 'pk_test_51KcUo7IaOQbrDOt1Rvb8Bt9XT4HnxkFuxVJCWWcaNgFMCSbIY2thOLrOyQjJEyHKOO0F9RDTlDEYdd2YjH5jDBJi00KILJwBSY'
-app.config['STRIPE_SECRET_KEY'] = 'sk_test_51KcUo7IaOQbrDOt1T5Rml1Mnwf7dLOBtoCq87Y9TLKfkZkHWpETciUBsy0Vz23so2OQQsStnuPjcOInSgtaaAYCw00I6O33Ynh'
+app.config['STRIPE_PUBLIC_KEY'] = os.getenv('STRIPE_PUBLIC_KEY')
+app.config['STRIPE_SECRET_KEY'] = os.getenv('STRIPE_SECRET_KEY')
 stripe.api_key = app.config['STRIPE_SECRET_KEY']
 
 @login_manager.user_loader
@@ -73,7 +84,7 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)  # Added email field
-    password_hash = db.Column(db.String(128), nullable=False)
+    password_hash = db.Column(db.String(300), nullable=False)
     profile_image = db.Column(db.String(255), nullable=True)  # Add profile_image field
     role = db.Column(db.String(50), nullable=False)  # Add role field
 
@@ -114,8 +125,8 @@ project_user = db.Table('project_user',
 # Value Driver
 class ValueDriver(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    value_driver = db.Column(db.String(100), nullable=False)
-    measured_by = db.Column(db.String(100))
+    value_driver = db.Column(db.String(800), nullable=False)
+    measured_by = db.Column(db.String(800))
     technical_attributes = db.Column(db.Text, nullable=True)  # Add technical_attributes field
     weighting = db.Column(db.Float, default=0.0)  # Changed to Float for more precision
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
@@ -885,8 +896,8 @@ def product_comparison(project_id):
         if 'add_product' in request.form:
             brand_name = request.form.get('brand_name')
             product_name = request.form.get('product_name')
-            price = request.form.get('price')
-            currency = request.form.get('currency') #Get the currency from the form
+            price = request.form.get('price', 0)  # Default to 0 if not provided
+            currency = request.form.get('currency')  # Get the currency from the form
             image = request.files.get('image')
             price_source = request.form.get('price_source')  # Get the price source from the form
 
@@ -900,7 +911,7 @@ def product_comparison(project_id):
                 image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
             try:
-                price = float(price) if price else None
+                price = float(price) if price else 0.0
             except ValueError:
                 flash('Invalid price format.', 'danger')
                 return redirect(url_for('product_comparison', project_id=project_id))
@@ -1868,3 +1879,12 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all() #Creates the database if it doesn't exist
     app.run(debug=True)
+
+
+#incase i forget the env variables
+#SECRET_KEY=your_secret_key
+#SQLALCHEMY_DATABASE_URI=postgresql://marketmapper_user:Z7rH08w90j6rFvVJyxaPI68krfjYDBeu@dpg-cut33gtds78s738sprlg-a.oregon-postgres.render.com/marketmapper
+#MAIL_USERNAME=michaelthomasberry1@gmail.com
+#MAIL_PASSWORD=nyfs fkzj ytew hysz
+#STRIPE_PUBLIC_KEY=pk_test_51KcUo7IaOQbrDOt1Rvb8Bt9XT4HnxkFuxVJCWWcaNgFMCSbIY2thOLrOyQjJEyHKOO0F9RDTlDEYdd2YjH5jDBJi00KILJwBSY
+#STRIPE_SECRET_KEY=sk_test_51KcUo7IaOQbrDOt1T5Rml1Mnwf7dLOBtoCq87Y9TLKfkZkHWpETciUBsy0Vz23so2OQQsStnuPjcOInSgtaaAYCw00I6O33Ynh
