@@ -6,6 +6,12 @@
 
     <p class="text-center">Market Mapper quickly identifies statistically significant gaps and opportunities in your market, helping you make data-driven decisions faster.</p>
 
+    {% if current_user.role == 'standard' %}
+    <div class="alert alert-info text-center" role="alert">
+        <strong>Upgrade to Premium!</strong> Unlock more features and capabilities. <a href="{{ url_for('upgrade') }}" class="btn btn-warning ml-2"><i class="fas fa-arrow-up"></i> Upgrade Now</a>
+    </div>
+    {% endif %}
+
     {% if pending_invitations %}
     <h3>Pending Invitations</h3>
     <div class="row">
