@@ -13,3 +13,4 @@ Flask-Admin
 stripe
 flask-wtf
 psycopg2-binary
+python-dotenv
