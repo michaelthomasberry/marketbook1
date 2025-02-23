@@ -22,6 +22,8 @@ import stripe
 import csv
 from flask import render_template, url_for
 from dotenv import load_dotenv
+from wtforms import PasswordField  # Add this import
+
 
 # Load environment variables from .env file
 load_dotenv()
@@ -252,7 +254,18 @@ class SecureModelView(ModelView):
 
 # Define specific model views with searchable columns and CSV export enabled
 class UserModelView(SecureModelView):
-    column_searchable_list = ['username', 'email']
+    form_columns = ['username', 'email', 'role']
+
+    def on_model_change(self, form, model, is_created):
+        print("on_model_change called")  # Debugging statement
+        print("Form data:", form.data)  # Debugging statement
+        print("Model:", model)  # Debugging statement
+        # No need to handle password here since it's not part of the form
+
+    def edit_form(self, obj=None):
+        form = super(UserModelView, self).edit_form(obj)
+        print("Edit form data:", form.data)  # Debugging statement
+        return form
 
 class ProjectModelView(SecureModelView):
     column_searchable_list = ['name', 'category', 'target_customer', 'country']
@@ -296,8 +309,8 @@ admin.add_view(MarketingMessageModelView(MarketingMessage, db.session))
 admin.add_view(CallToActionClickModelView(CallToActionClick, db.session))
 admin.add_view(SecureModelView(AdditionalQuestionResponse, db.session))  # Add this line
 
-############################## Routes  #######################################################################
-###########Routes For Logging a user in ##############
+############################## Routes  ########################################################################################################################################
+###########Routes For Logging a user in ##############n ##############
 
 @app.route('/stripe_checkout')
 def stripe_checkout():
@@ -341,7 +354,7 @@ def register():
             flash('Passwords do not match.', 'danger')
             return redirect(url_for('register'))
 
-        #Email Validation
+        #Email Validationn
         if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
             flash('Invalid email format.', 'danger')
             return redirect(url_for('register'))
@@ -366,7 +379,7 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html')
 
-# Login
+# Login# Login
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
@@ -461,7 +474,7 @@ def reset_password(token):
     return render_template('reset_password.html', token=token)
 
 
-################## Routes for Home Page ####################
+################## Routes for Home Page ####################### Routes for Home Page ####################
 
 # Dashboard
 @app.route('/dashboard', methods=['GET', 'POST'])
@@ -513,7 +526,7 @@ def dashboard():
 
     pending_invitations_with_owners = [(project, User.query.get(project.user_id)) for project in pending_invitations]
 
-    # Fetch the active marketing message
+    # Fetch the active marketing messages
     marketing_message = MarketingMessage.query.filter_by(is_active=True).first()
     marketing_message_dict = {
         'content': marketing_message.content,
@@ -592,7 +605,7 @@ def decline_invitation(project_id):
         flash('Project invitation declined.', 'info')
     return redirect(url_for('dashboard'))
 
-# Edit
+# Edit# Edit
 @app.route('/edit_project/<int:project_id>', methods=['GET', 'POST'])
 @login_required
 def edit_project(project_id):
@@ -613,7 +626,7 @@ def edit_project(project_id):
 
     return render_template('edit_project.html', project=project)
 
-# Delete
+# Delete# Delete
 @app.route('/delete_project/<int:project_id>', methods=['GET', 'POST'])
 @login_required
 def delete_project(project_id):
@@ -635,7 +648,7 @@ def delete_project(project_id):
     return redirect(url_for('dashboard'))
 
 
-################## Routes for Manage Market Book ####################
+################## Routes for Manage Market Book ####################e Market Book ####################
 
 #manage
 @app.route('/manage/<int:project_id>')
@@ -666,7 +679,7 @@ def manage_market_book(project_id):
     return render_template('manage_market_book.html', project=project)
 
 
-###########routes for managing creating and weighting value drivers ####
+###########routes for managing creating and weighting value drivers #### creating and weighting value drivers ####
 
 # create value drivers
 @app.route('/manage/<int:project_id>/value_drivers', methods=['GET', 'POST'])
@@ -703,7 +716,7 @@ def value_drivers(project_id):
             value_driver_to_edit.value_driver = request.form.get('edit_value_driver')
             db.session.commit()
             flash('Value Driver updated successfully!', 'success')
-        elif 'edit_measured_by' in request.form:  # New elif statement for modal edits
+        elif 'edit_measured_by' in request.form:  # New elif statement for modal edit
             measured_by_id = request.form.get('edit_measured_by_id')
             measured_by_to_edit = ValueDriver.query.get_or_404(measured_by_id)
             measured_by_to_edit.measured_by = request.form.get('edit_measured_by')
@@ -874,7 +887,7 @@ def pairwise_comparison(project_id):
 
     return render_template('pairwise_comparison.html', project=project)
 
-###########################routes for managing comparing products ####
+###########################routes for managing comparing products ####paring products ####
 # Product Comparison
 @app.route('/manage/<int:project_id>/product_comparison', methods=['GET', 'POST'])
 @login_required
@@ -1151,7 +1164,7 @@ def edit_scoring_guidance(project_id, value_driver_id):
     flash('Scoring guidance updated successfully!', 'success')
     return redirect(url_for('rate_product', project_id=project_id, product_id_to_rate=request.args.get('product_id_to_rate')))
 
-######################### View graphs  ##################################
+######################### View graphs  #############################################################
 def generate_colors(num_colors):
     colors = []
     for i in range(num_colors):
@@ -1402,7 +1415,7 @@ def share_project(project_id):
         <p>If you're new to Market Mapper and want to learn more, visit our <a href="{url_for('landing', _external=True)}">landing page</a>.</p>
 
         <p>Warm wishes,</p>
-        
+                
         <p>The Market Mapper Team</p>
         """
         mail.send(msg)
@@ -1410,7 +1423,7 @@ def share_project(project_id):
 
     return redirect(url_for('dashboard'))
 
-# Manage Access
+# Manage Access# Manage Access
 @app.route('/manage_access/<int:project_id>', methods=['GET', 'POST'])
 def manage_access(project_id):
     project = Project.query.get_or_404(project_id)
@@ -1498,7 +1511,7 @@ def settings():
 
     return render_template('settings.html')
 
-# Default premium conditions
+# Default premium conditions# Default premium conditions
 PREMIUM_CONDITIONS = {
     'max_projects': 2,
     'max_products': 6
@@ -1635,7 +1648,7 @@ def survey_results(project_id):
                            project=project, 
                            survey_labels=labels, 
                            survey_weights=weights, 
-                           num_submissions=num_submissions, 
+                           num_submissions=num_submissions,  
                            additional_questions=additional_questions,
                            survey_data=survey_data,
                            additional_questions_data=additional_questions_data)
@@ -1774,7 +1787,7 @@ def price_movement_indicators(project_id):
                            products_with_latest_price_change=products_with_latest_price_change, 
                            brand_filter=brand_filter, 
                            product_name_filter=product_name_filter,
-                           brands=[b[0] for b in brands],
+                           brands=[b[0] for b in brands], 
                            product_names=[p[0] for p in product_names],
                            project_id=project_id)
 
@@ -1873,17 +1886,53 @@ def create_survey(project_id):
 
     return render_template('create_survey.html', project=project, additional_questions=additional_questions)
 
-####################################Initiate App ############################################
+@app.route('/manage_user_roles')
+@login_required
+def manage_user_roles():
+    if current_user.role != 'admin':
+        flash('You are not authorized to access this page.', 'danger')
+        return redirect(url_for('dashboard'))
+
+    users = User.query.all()
+    return render_template('manage_user_roles.html', users=users)
+
+@app.route('/edit_user_role/<int:user_id>', methods=['GET', 'POST'])
+@login_required
+def edit_user_role(user_id):
+    if current_user.role != 'admin':
+        flash('You are not authorized to access this page.', 'danger')
+        return redirect(url_for('dashboard'))
+
+    user = User.query.get_or_404(user_id)
+
+    if request.method == 'POST':
+        new_role = request.form.get('role')
+        if new_role in ['admin', 'standard', 'premium']:
+            user.role = new_role
+            db.session.commit()
+            flash('User role updated successfully!', 'success')
+            return redirect(url_for('manage_user_roles'))
+        else:
+            flash('Invalid role selected.', 'danger')
+
+    return render_template('edit_user_role.html', user=user)
+
+####################################Initiate App #########################################################Initiate App ############################################
 
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all() #Creates the database if it doesn't exist
+        db.create_all() #Creates the database if it doesn't existeates the database if it doesn't exist
     app.run(debug=True)
 
 
 #incase i forget the env variables
 #SECRET_KEY=your_secret_key
-#SQLALCHEMY_DATABASE_URI=postgresql://marketmapper_user:Z7rH08w90j6rFvVJyxaPI68krfjYDBeu@dpg-cut33gtds78s738sprlg-a.oregon-postgres.render.com/marketmapper
+
+
+
+
+
+#STRIPE_SECRET_KEY=sk_test_51KcUo7IaOQbrDOt1T5Rml1Mnwf7dLOBtoCq87Y9TLKfkZkHWpETciUBsy0Vz23so2OQQsStnuPjcOInSgtaaAYCw00I6O33Ynh#STRIPE_PUBLIC_KEY=pk_test_51KcUo7IaOQbrDOt1Rvb8Bt9XT4HnxkFuxVJCWWcaNgFMCSbIY2thOLrOyQjJEyHKOO0F9RDTlDEYdd2YjH5jDBJi00KILJwBSY#MAIL_PASSWORD=nyfs fkzj ytew hysz#MAIL_USERNAME=michaelthomasberry1@gmail.com#SQLALCHEMY_DATABASE_URI=postgresql://marketmapper_user:Z7rH08w90j6rFvVJyxaPI68krfjYDBeu@dpg-cut33gtds78s738sprlg-a.oregon-postgres.render.com/marketmapper#SQLALCHEMY_DATABASE_URI=postgresql://marketmapper_user:Z7rH08w90j6rFvVJyxaPI68krfjYDBeu@dpg-cut33gtds78s738sprlg-a.oregon-postgres.render.com/marketmapper
 #MAIL_USERNAME=michaelthomasberry1@gmail.com
 #MAIL_PASSWORD=nyfs fkzj ytew hysz
 #STRIPE_PUBLIC_KEY=pk_test_51KcUo7IaOQbrDOt1Rvb8Bt9XT4HnxkFuxVJCWWcaNgFMCSbIY2thOLrOyQjJEyHKOO0F9RDTlDEYdd2YjH5jDBJi00KILJwBSY

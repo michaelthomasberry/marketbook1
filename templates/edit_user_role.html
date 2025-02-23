@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block title %}Edit User Role{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h1>Edit Role for {{ user.username }}</h1>
+    <form method="POST">
+        <div class="form-group">
+            <label for="role">Role:</label>
+            <select class="form-control" id="role" name="role">
+                <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+                <option value="standard" {% if user.role == 'standard' %}selected{% endif %}>Standard</option>
+                <option value="premium" {% if user.role == 'premium' %}selected{% endif %}>Premium</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a href="{{ url_for('manage_user_roles') }}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

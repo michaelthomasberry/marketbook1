@@ -1,0 +1,19 @@
+{% extends 'admin/base.html' %}
+{% block body %}
+    <form method="post" action="{{ url_for('admin.edit_view', id=model.id) }}">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.username.label }}
+            {{ form.username(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.email.label }}
+            {{ form.email(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.role.label }}
+            {{ form.role(class="form-control") }}
+        </div>
+        <button type="submit" class="btn btn-primary">Save</button>
+    </form>
+{% endblock %}
