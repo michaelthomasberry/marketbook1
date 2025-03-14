@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Referrals{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h1>Referrals</h1>
+    <p><strong><i class="fas fa-gift"></i> Enjoy a premium account upgrade for free by helping us grow!</strong></p>
+    <p>You've experienced the benefits of Market Mapper firsthand. Now, share this tool with the right people who can truly make a difference. Together, putting this tool in the hands of the right people will lead to positive decisions that will ultimately make this world a better place. Creating value in the world starts with understanding what value is. Think carefully about who would benefit most from Market Mapper. We would rather have this tool in the hands of 5 right people than 1000 wrong ones.</p>
+    <p>Share your referral link with your friends and colleagues:</p>
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" value="{{ url_for('register', _external=True) }}?ref={{ current_user.id }}" readonly>
+        <div class="input-group-append">
+            <button class="btn btn-primary" type="button" onclick="copyReferralLink()">Copy</button>
+        </div>
+    </div>
+    <p>You have referred {{ referral_count }} out of 5 users.</p>
+    <div class="progress">
+        <div class="progress-bar" role="progressbar" style="width: {{ (referral_count / 5) * 100 }}%;" aria-valuenow="{{ referral_count }}" aria-valuemin="0" aria-valuemax="5">{{ referral_count }}/5</div>
+    </div>
+</div>
+<script>
+function copyReferralLink() {
+    var copyText = document.querySelector('.input-group input');
+    copyText.select();
+    copyText.setSelectionRange(0, 99999); /* For mobile devices */
+    document.execCommand("copy");
+    alert("Referral link copied to clipboard!");
+}
+</script>
+{% endblock %}

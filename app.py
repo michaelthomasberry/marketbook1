@@ -22,7 +22,7 @@ import stripe
 import csv
 from flask import render_template, url_for
 from dotenv import load_dotenv
-from wtforms import PasswordField  # Add this import
+from wtforms import PasswordField  
 
 
 # Load environment variables from .env file
@@ -89,6 +89,7 @@ class User(db.Model, UserMixin):
     password_hash = db.Column(db.String(300), nullable=False)
     profile_image = db.Column(db.String(255), nullable=True)  # Add profile_image field
     role = db.Column(db.String(50), nullable=False)  # Add role field
+    referral_count = db.Column(db.Integer, default=0)  # Add referral_count field
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -101,6 +102,13 @@ class User(db.Model, UserMixin):
         if self.profile_image:
             return url_for('static', filename='uploads/' + self.profile_image)
         return url_for('static', filename='uploads/default_profile.png')  # Default profile image
+
+# New Referral model
+class Referral(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    referrer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    referred_email = db.Column(db.String(120), nullable=False)
+    date_referred = db.Column(db.DateTime, default=datetime.utcnow)
 
 #Project
 class Project(db.Model):
@@ -336,6 +344,7 @@ def register():
         email = request.form.get('email')
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
+        referrer_id = request.args.get('ref')  # Get referrer ID from query parameter
         role = request.form.get('role')
 
         if not username or not email or not password or not confirm_password:
@@ -369,6 +378,16 @@ def register():
         new_user.set_password(password)
         db.session.add(new_user)
         db.session.commit()
+
+        # Handle referral
+        if referrer_id:
+            referrer = User.query.get(referrer_id)
+            if referrer:
+                referrer.referral_count += 1
+                db.session.add(Referral(referrer_id=referrer.id, referred_email=email))
+                if referrer.referral_count >= 5:
+                    referrer.role = 'premium'
+                db.session.commit()
 
         # Send welcome email
         msg = Message('Welcome to Market Mapper', recipients=[email])
@@ -741,7 +760,7 @@ def value_drivers(project_id):
         elif 'reset_weightings' in request.form:  # New: Reset Weightings
             value_drivers_to_reset = ValueDriver.query.filter_by(project_id=project_id).all()
             for vd in value_drivers_to_reset:
-                vd.weighting = 0.0
+                vd.weighting = float(0.0)  # Convert to native Python float
             # Delete associated comparison results
             ComparisonResult.query.filter_by(project_id=project_id).delete()
             # Delete additional question responses
@@ -824,13 +843,13 @@ def compare_value_drivers(project_id):
 
         # Normalize weights to 100%
         total_weight = sum(weights)
-        if (total_weight > 0):
-            normalized_weights = [(w / total_weight) * 100 for w in weights]
+        if total_weight > 0:
+            normalized_weights = [(float(w) / total_weight) * 100 for w in weights]
         else:
             normalized_weights = [100 / num_drivers] * num_drivers
 
         for i, vd in enumerate(value_drivers):
-            vd.weighting = normalized_weights[i]
+            vd.weighting = float(normalized_weights[i])  # Convert to native Python float
             db.session.commit()
 
         return redirect(url_for('comparison_results', project_id=project_id))
@@ -1916,6 +1935,12 @@ def edit_user_role(user_id):
             flash('Invalid role selected.', 'danger')
 
     return render_template('edit_user_role.html', user=user)
+
+@app.route('/referrals')
+@login_required
+def referrals():
+    referral_count = current_user.referral_count or 0  # Ensure referral_count is an integer
+    return render_template('referrals.html', referral_count=referral_count)
 
 ####################################Initiate App #########################################################Initiate App ############################################
 
